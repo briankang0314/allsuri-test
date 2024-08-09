@@ -104,17 +104,17 @@ export async function Start() {
     }
 
     // Perform version check
-    try {
-        const updateRequired = await CheckForUpdates();
-        if (updateRequired) {
-            console.log('Update required. Reloading app...');
-            await clearAppCache();
-            window.location.reload(true);
-            return;
-        }
-    } catch (error) {
-        console.error('Error checking for updates:', error);
-    }
+    // try {
+    //     const updateRequired = await CheckForUpdates();
+    //     if (updateRequired) {
+    //         console.log('Update required. Reloading app...');
+    //         await clearAppCache();
+    //         window.location.reload(true);
+    //         return;
+    //     }
+    // } catch (error) {
+    //     console.error('Error checking for updates:', error);
+    // }
 
     try {
         // Initialize Kakao SDK
@@ -350,7 +350,7 @@ async function FillTheBody(contentName) {
 
 
 
-// Make Authenticated Requests
+// Backend API Requests
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function MakeAuthenticatedRequest(url, options = {}) {
     console.log('MakeAuthenticatedRequest called with URL:', url);
@@ -1051,6 +1051,22 @@ async function Logout() {
 
 // My Profile Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function FetchUserProfile() {
+    try {
+        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetProfile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ action: 'get_profile' })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+    }
+}
+
 function SetupMyProfileEventListeners() {
     const backBtn = document.getElementById('back-btn');
     if (backBtn) {
@@ -1071,43 +1087,6 @@ function SetupMyProfileEventListeners() {
     }
 
     InitializeAnimations();
-}
-
-function InitializeAnimations() {
-    const statItems = document.querySelectorAll('.stat-item');
-    statItems.forEach((item, index) => {
-        item.style.opacity = 0;
-        setTimeout(() => {
-            item.style.opacity = 1;
-        }, 100 * index);
-    });
-}
-
-
-
-
-
-
-
-
-
-
-// Profile Management
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function FetchUserProfile() {
-    try {
-        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetProfile', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ action: 'get_profile' })
-        });
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching user profile:', error);
-        return null;
-    }
 }
 
 function CalculateProfileCompletion(profile) {
@@ -1316,6 +1295,28 @@ function ShowIncompleteProfileWarning() {
         completeProfileBtn.addEventListener('click', OpenEditProfileModal);
     }
 }
+
+function InitializeAnimations() {
+    const statItems = document.querySelectorAll('.stat-item');
+    statItems.forEach((item, index) => {
+        item.style.opacity = 0;
+        setTimeout(() => {
+            item.style.opacity = 1;
+        }, 100 * index);
+    });
+}
+
+
+
+
+
+
+
+
+
+
+// Profile Management
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
