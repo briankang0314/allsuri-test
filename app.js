@@ -255,8 +255,11 @@ async function FillTheBody(contentName) {
                                     const permission = await Notification.requestPermission();
                                     if (permission === 'granted') {
                                         console.log('Notification permission granted');
-                                        // Optionally, you can update the UI here to reflect the new permission status
-                                        FillTheBody('notification');  // Refresh the notification page
+                                        document.getElementById('button_notification_allow').style.display = 'none';
+                                        document.getElementById('device_token').style.display = 'block';
+
+                                        await SaveDeviceToken();
+                                        location.reload();
                                     } else {
                                         console.log('Notification permission denied');
                                         // Optionally, you can update the UI here to reflect the denied status
