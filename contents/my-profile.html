@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>올수리 - 내 프로필</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="/contents/_favicon.png" type="image/x-icon">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            width: 32px;
+            height: 32px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.1);
+        }
+
+        .content {
+            padding: 3rem 0;
+        }
+
+        .profile-card {
+            border: none;
+            border-radius: 15px;
+            padding: 2rem;
+            background-color: #ffffff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #FEE500;
+            transition: all 0.3s ease;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(254, 229, 0, 0.5);
+        }
+
+        .btn-edit-profile {
+            background-color: #FEE500;
+            color: #000000;
+            border: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-edit-profile:hover {
+            background-color: #FFD700;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background-color: #e9ecef;
+        }
+
+        .progress-bar {
+            background-color: #FEE500;
+            transition: width 0.6s ease;
+        }
+
+        .badge {
+            font-size: 0.8em;
+            margin-right: 5px;
+            padding: 0.4em 0.7em;
+            border-radius: 20px;
+        }
+
+        .section-title {
+            border-bottom: 2px solid #FEE500;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .stat-item {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            background-color: #FEE500;
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+            color: #FEE500;
+        }
+
+        .stat-item:hover .stat-icon {
+            color: #000000;
+        }
+
+        @media (max-width: 576px) {
+            .header .btn {
+                font-size: 0.9rem;
+                padding: 0.3rem 0.6rem;
+            }
+        }
+
+
+        .incomplete-profile-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none; /* Hidden by default */
+        }
+
+        .incomplete-profile-warning .btn {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <header class="header d-flex justify-content-between align-items-center mb-4 py-3">
+            <div class="d-flex align-items-center">
+                <img src="/contents/_favicon.png" alt="올수리 로고" class="logo me-2">
+                <h1 class="h3 fw-bold m-0">올수리</h1>
+            </div>
+            <button id="back-btn" class="btn btn-outline-dark"><i class="fas fa-arrow-left me-1"></i>홈으로 가기</button>
+        </header>
+
+        <main class="content">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div id="incomplete-profile-warning" class="incomplete-profile-warning">
+                            <h4><i class="fas fa-exclamation-triangle"></i> 프로필 완성 필요</h4>
+                            <p>서비스를 이용하기 위해 프로필을 완성해 주세요. 전화번호, 지역, 선호 카테고리 정보가 필요합니다.</p>
+                            <button id="complete-profile-btn" class="btn btn-warning">지금 프로필 완성하기</button>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="text-center mb-4">
+                                <img id="profile-image" src="/contents/default-profile.png" alt="프로필 이미지" class="profile-image mb-3">
+                                <h2 id="user-nickname" class="h4 mb-0">이름</h2>
+                                <p id="user-email" class="text-muted">user@example.com</p>
+                                <p><span id="account-type" class="badge bg-primary">일반 사용자</span></p>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="h5 section-title">개인 정보</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><i class="fas fa-calendar-alt stat-icon"></i> <strong>가입일:</strong> <span id="created-at"></span></p>
+                                        <p><i class="fas fa-sign-in-alt stat-icon"></i> <strong>마지막 로그인:</strong> <span id="last-login"></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><i class="fas fa-phone stat-icon"></i> <strong>연락처:</strong> <span id="user-phone"></span></p>
+                                        <p><i class="fas fa-map-marker-alt stat-icon"></i> <strong>지역:</strong> <span id="user-location"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="profile-completion-section" class="mb-4">
+                                <h3 class="h5 section-title">프로필 완성도</h3>
+                                <div class="progress">
+                                    <div id="profile-completion" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="h5 section-title">평점 및 오더 정보</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="stat-item">
+                                            <p class="mb-0"><i class="fas fa-star stat-icon"></i> <strong>평균 평점:</strong> <span id="user-rating"></span>/5.0</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stat-item">
+                                            <p class="mb-0"><i class="fas fa-check-circle stat-icon"></i> <strong>완료된 오더:</strong> <span id="completed-orders"></span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="h5 section-title">계정 통계</h3>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="stat-item">
+                                            <p class="mb-0"><i class="fas fa-wrench stat-icon"></i> <strong>총 오더 수:</strong> <span id="total-orders"></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stat-item">
+                                            <p class="mb-0"><i class="fas fa-check-double stat-icon"></i> <strong>완료한 오더:</strong> <span id="completed-orders-count"></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stat-item">
+                                            <p class="mb-0"><i class="fas fa-ban stat-icon"></i> <strong>취소율:</strong> <span id="cancellation-rate"></span>%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h3 class="h5 section-title">선호 카테고리</h3>
+                                <div id="preferred-categories"></div>
+                            </div>
+
+                            <div class="text-center">
+                                <button id="edit-profile-btn" class="btn btn-edit-profile"><i class="fas fa-user-edit me-1"></i>프로필 수정</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProfileModalLabel">프로필 수정</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfileForm">
+                        <div class="mb-3">
+                            <label for="editNickname" class="form-label">닉네임</label>
+                            <input type="text" class="form-control" id="editNickname" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPhone" class="form-label">전화번호 (XXX-XXXX-XXXX)</label>
+                            <input type="tel" class="form-control" id="editPhone" pattern="\d{3}-\d{4}-\d{4}" placeholder="010-1234-5678" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="egion" class="form-label">지역</label>
+                            <select class="form-select" id="region" required>
+                                <option value="">지역 선택</option>
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="city" class="form-label">도시</label>
+                            <select class="form-select" id="city" required>
+                                <option value="">도시 선택</option>
+                                <!-- Options will be populated dynamically based on selected region -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">선호 카테고리</label>
+                            <div id="categoryCheckboxes">
+                              <!-- Checkboxes will be dynamically added here -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="saveProfileChanges">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

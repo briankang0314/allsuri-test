@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알림 허가 요청</title>
+
+    <style>
+        main {
+            padding: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        section {
+            text-align: center;
+        }
+        .message {
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        .btn {
+            background-color: transparent;
+            color: #28a745;
+            border: 1px solid #28a745;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 0.25rem;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #28a745;
+            color: white;
+        }
+        #device_token {
+            margin-top: 1rem;
+            font-style: italic;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section id="default">
+            <div class="message">
+                앱을 설치해 주셔서 고맙습니다.<br>
+                이 앱을 정상적으로 사용하려면 알림 받기를 허락해 주셔야 합니다.
+            </div>
+            <button id="button_notification_allow" type="button" class="btn">알림 허가</button>
+            <div id="device_token">
+                Device Token을 받고 있습니다.
+            </div>
+        </section>
+        <section id="denied">
+            <div class="message">
+                알림 받을 수 없어 앱 설정을 진행할 수 없습니다.<br>
+                알림 받기를 켜려면 앱을 지우고 다시 설치해 주세요.
+            </div>
+        </section>
+    </main>
+</body>
+</html>

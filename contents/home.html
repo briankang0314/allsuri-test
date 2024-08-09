@@ -1,0 +1,348 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>올수리 - 홈</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+        <link rel="icon" href="/contents/_favicon.png" type="image/x-icon">
+
+        <style>
+            .header {
+                border-bottom: 1px solid #e0e0e0;
+                padding: 10px 0;
+            }
+            @media (max-width: 576px) {
+                .header .btn {
+                    font-size: 0.8rem;
+                    padding: 0.25rem 0.5rem;
+                }
+            }
+            .logo {
+                width: 24px;
+                height: 24px;
+            }
+
+
+            .order-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            transition: transform 0.2s ease-in-out;
+            margin-bottom: 1rem;
+            }
+            .order-card:hover {
+                transform: translateY(-5px);
+            }
+            .card-badge {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                font-size: 0.8rem;
+            }
+            .badge.order-status {
+                font-size: 0.8rem;
+            }
+            .modal-body {
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+            .my-order-badge {
+                font-size: 0.7rem;
+                white-space: nowrap;
+            }
+
+
+            .btn-post-order {
+                background-color: #FEE500;
+                color: #000000;
+                border: none;
+                transition: background-color 0.3s ease-in-out;
+            }
+            .btn-post-order:hover {
+                background-color: #FFD700;
+            }
+            .pagination {
+                justify-content: center;
+            }
+
+
+            .btn-refresh {
+                background-color: #f8f9fa;
+                color: #000000;
+                border: 1px solid #ced4da;
+                transition: background-color 0.3s ease-in-out;
+            }
+            .btn-refresh:hover {
+                background-color: #e9ecef;
+            }
+
+            
+            .settings-icon {
+                cursor: pointer;
+                transition: transform 0.2s ease-in-out;
+            }
+            .settings-icon:hover {
+                transform: rotate(45deg);
+            }
+
+
+            .dropdown {
+                position: relative;
+            }
+            .dropdown-toggle::after {
+                display: none;
+            }
+            .dropdown-menu {
+                display: none;
+                position: absolute;
+                right: 0;
+                left: auto;
+                min-width: 120px;
+                max-width: calc(100vw - 20px); /* Prevents overflow on very small screens */
+                background-color: #fff;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                z-index: 1000;
+                margin-top: 0.5rem; /* Adds a small gap between button and dropdown */
+            }
+            .dropdown-menu.show {
+                display: block;
+            }
+            .dropdown-item {
+                padding: 0.5rem 1rem;
+                color: #333;
+                text-decoration: none;
+                display: block;
+                white-space: nowrap; /* Prevents text wrapping */
+                overflow: hidden;
+                text-overflow: ellipsis; /* Adds ellipsis for overflowing text */
+            }
+            .dropdown-item:hover {
+                background-color: #f8f9fa;
+            }
+            .dropdown-divider {
+                height: 0;
+                margin: 0.5rem 0;
+                overflow: hidden;
+                border-top: 1px solid #e9ecef;
+            }
+            @media (max-width: 576px) {
+                .dropdown-menu {
+                    min-width: 100px;
+                }
+                .dropdown-item {
+                    padding: 0.4rem 0.8rem; /* Slightly smaller padding on mobile */
+                }
+            }
+
+            .filter-sort-controls {
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+            .form-select {
+                font-size: 0.9rem;
+                padding: 0.25rem 0.5rem;
+            }
+            .filter-label {
+                font-size: 0.8rem;
+                margin-bottom: 0.25rem;
+            }
+            @media (max-width: 768px) {
+                .filter-sort-controls .col-md-3 {
+                    margin-bottom: 10px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container-fluid">
+            <header class="header d-flex justify-content-between align-items-center mb-4 py-3">
+                <div class="d-flex align-items-center">
+                    <img src="/contents/_favicon.png" alt="올수리 로고" class="logo me-2">
+                    <h1 class="h3 fw-bold m-0">올수리</h1>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button id="refresh-btn" class="btn btn-refresh me-2">
+                        <i class="bi bi-arrow-clockwise"></i> 새로고침
+                    </button>
+                    <button id="post-order-btn" class="btn btn-post-order me-2">
+                        <i class="bi bi-plus-circle"></i> 새 오더
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-link p-0" type="button" id="settings-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear fs-5"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settings-btn">
+                            <li><a class="dropdown-item" href="#profile">내 프로필</a></li>
+                            <li><a class="dropdown-item" href="#my-orders">내 오더</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#logout">로그아웃</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <main role="main">
+                <section id="filter-sort-section" class="filter-sort-controls mb-3 p-2 shadow-sm bg-white rounded">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-6 col-md-3">
+                            <label for="region-filter" class="filter-label">지역</label>
+                            <select id="region-filter" class="form-select">
+                                <option value="">전체</option>
+                                <!-- Regions will be populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label for="city-filter" class="filter-label">도시</label>
+                            <select id="city-filter" class="form-select">
+                                <option value="">전체</option>
+                                <!-- Cities will be populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label for="status-filter" class="filter-label">상태</label>
+                            <select id="status-filter" class="form-select">
+                                <option value="">전체</option>
+                                <option value="open">지원가능</option>
+                                <option value="closed">마감</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label for="sort-option" class="filter-label">정렬</label>
+                            <select id="sort-option" class="form-select">
+                                <option value="created_at">최신순</option>
+                                <option value="fee">수수료순</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="order-dashboard" class="section mb-4">
+                    <div id="order-posts-container" class="row g-4">
+                        <!-- Order posts will be dynamically inserted here -->
+                    </div>
+                </section>
+                <nav aria-label="Page navigation">
+                    <ul id="pagination-container" class="pagination justify-content-center">
+                        <!-- Pagination will be dynamically inserted here -->
+                    </ul>
+                </nav>
+            </main>
+        </div>
+
+        <!-- Template for order cards -->
+        <template id="order-card-template">
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card order-card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title text-truncate mb-0"></h5>
+                            <div class="badge-container d-flex align-items-center">
+                                <span class="badge bg-warning text-dark my-order-badge me-1" style="display: none;">내가 올린 오더</span>
+                                <span class="badge order-status rounded-pill"></span>
+                            </div>
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted"></h6>
+                        <p class="order-meta small text-muted mb-3"></p>
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <button class="btn btn-sm btn-outline-primary view-details">상세 보기</button>
+                            <span class="fw-bold order-fee text-primary"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title" id="orderDetailsModalLabel">오더 상세</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="orderDetailsModalBody">
+                        <!-- Order details will be dynamically inserted here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                        <button type="button" class="btn btn-primary" id="applyForOrderBtn">지원하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="applicationFormModal" tabindex="-1" aria-labelledby="applicationFormModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title" id="applicationFormModalLabel">지원 신청</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="applicationForm">
+                            <div class="mb-3">
+                                <label for="applicantName" class="form-label">이름</label>
+                                <input type="text" class="form-control" id="applicantName" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactNumber" class="form-label">연락처</label>
+                                <input type="tel" class="form-control" id="contactNumber" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="location" class="form-label">지역</label>
+                                <input type="text" class="form-control" id="location" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="yearsOfExperience" class="form-label">경력 (년)</label>
+                                <input type="number" class="form-control" id="yearsOfExperience" step="1">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">작업 가능 일정 (필수)</label>
+                                <div id="availabilityContainer">
+                                    <!-- Availability slots will be dynamically added here -->
+                                </div>
+                                <div id="availabilityError" class="invalid-feedback"></div>
+                                <button type="button" class="btn btn-secondary mt-2" id="addAvailabilityBtn">일정 추가</button>
+                            </div>
+                            <div class="mb-3">
+                                <label for="estimatedCompletion" class="form-label">예상 완료 시간 (필수)</label>
+                                <input type="number" class="form-control" id="estimatedCompletion" min="1" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="introduction" class="form-label">자기 소개 (필수)</label>
+                                <textarea class="form-control" id="introduction" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="resources" class="form-label">보유 장비 (선택)</label>
+                                <input type="text" class="form-control" id="resources">
+                            </div>
+                            <div class="mb-3">
+                                <label for="questions" class="form-label">질문 사항 (선택)</label>
+                                <textarea class="form-control" id="questions" rows="2"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn btn-primary" id="submitApplicationBtn">신청하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
+
+
+
+
+
+
+
+<!-- <button id="user-login-info-btn" class="btn btn-outline-dark me-2">
+    <i class="bi bi-person-circle"></i>
+</button> -->
