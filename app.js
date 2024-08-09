@@ -206,10 +206,6 @@ async function clearAppCache() {
 }
 
 
-
-
-
-
 // Dynamic Content Loading
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function FillTheBody(contentName) {
@@ -254,7 +250,22 @@ async function FillTheBody(contentName) {
                     switch (Notification.permission) {
                         case 'default':
                             document.getElementById('default').style.display = 'block';
-                            document.getElementById('button_notification_allow').addEventListener('click', RequestNotificationPermission);
+                            document.getElementById('button_notification_allow').addEventListener('click', async function () {
+                                try {
+                                    const permission = await Notification.requestPermission();
+                                    if (permission === 'granted') {
+                                        console.log('Notification permission granted');
+                                        // Optionally, you can update the UI here to reflect the new permission status
+                                        FillTheBody('notification');  // Refresh the notification page
+                                    } else {
+                                        console.log('Notification permission denied');
+                                        // Optionally, you can update the UI here to reflect the denied status
+                                    }
+                                } catch (error) {
+                                    console.error('Error requesting notification permission:', error);
+                                    ShowErrorMessage('알림 권한 요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+                                }
+                            });
 
                             break;
                         case 'denied':
@@ -266,7 +277,12 @@ async function FillTheBody(contentName) {
                 case 'login':
                     const kakaoLoginBtn = document.getElementById('kakao-login-btn');
                     if (kakaoLoginBtn) {
-                        kakaoLoginBtn.addEventListener('click', AuthorizeByKakao);
+                        kakaoLoginBtn.addEventListener('click', function() {
+                            console.log('Attempting Kakao login');
+                            Kakao.Auth.authorize({
+                                redirectUri: 'https://allsuri-test.netlify.app/oauth/callback',
+                            });
+                        });
                     }
 
                     const backButton = document.getElementById('back-btn');
@@ -368,6 +384,94 @@ async function MakeAuthenticatedRequest(url, options = {}) {
 
 
 
+// User Authentication
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function RefreshAccessToken() {
+    const tokens = JSON.parse(localStorage.getItem('tokens'));
+    if (!tokens || !tokens.refresh_token) {
+        throw new Error('No refresh token available');
+    }
+
+    try {
+        const response = await fetch('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/KakaoTokenRefresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh_token: tokens.refresh_token }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to refresh token');
+        }
+
+        const result = await response.json();
+        console.log('Token refresh result:', result);
+        const newTokens = result.tokens;
+
+        // Update tokens in localStorage
+        const updatedTokens = { ...tokens, ...newTokens };
+        localStorage.setItem('tokens', JSON.stringify(updatedTokens));
+
+        // Update user object in localStorage
+        const user = JSON.parse(localStorage.getItem('user'));
+        user.access_token = newTokens.access_token;
+        if (newTokens.refresh_token) {
+            user.refresh_token = newTokens.refresh_token;
+        }
+        user.token_expires_at = new Date(Date.now() + newTokens.expires_in * 1000).toISOString();
+        if (newTokens.id_token) {
+            user.id_token = newTokens.id_token;
+        }
+        localStorage.setItem('user', JSON.stringify(user));
+
+        return newTokens.access_token;
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        // If refresh fails, redirect to login
+        window.location.href = '/login';
+    }
+}
+
+async function GetValidAccessToken() {
+    if (IsAccessTokenExpired()) {
+        console.log('Access token is expired. Refreshing...');
+        const newAccessToken = await RefreshAccessToken();
+        if (IsRefreshTokenNearExpiration()) {
+            console.log('Refresh token is nearing expiration. User should re-authenticate soon.');
+            // You might want to show a notification to the user here
+        }
+        return newAccessToken;
+    } else {
+        return JSON.parse(localStorage.getItem('tokens')).access_token;
+    }
+}
+
+function IsAccessTokenExpired() {
+    const tokens = JSON.parse(localStorage.getItem('tokens'));
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!tokens || !user) return true;
+
+    const expiresAt = new Date(user.token_expires_at);
+    const now = new Date();
+    return now.getTime() > expiresAt.getTime();
+}
+
+function IsRefreshTokenNearExpiration() {
+    const tokens = JSON.parse(localStorage.getItem('tokens'));
+    if (!tokens || !tokens.refresh_token_expires_in) return false;
+
+    const refreshTokenExpiresAt = new Date(tokens.refresh_token_expires_in * 1000 + Date.now());
+    const oneMonthFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    return refreshTokenExpiresAt < oneMonthFromNow;
+}
+
+
+
+
+
+
 // User Login-Info Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function SetupUserLoginInfoPage() {
@@ -430,6 +534,10 @@ function SetupUserLoginInfoPage() {
         homeBtn.addEventListener('click', () => FillTheBody('home'));
     }
 }
+
+
+
+
 
 
 
@@ -937,6 +1045,10 @@ async function Logout() {
 
 
 
+
+
+
+
 // My Profile Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function SetupMyProfileEventListeners() {
@@ -970,111 +1082,6 @@ function InitializeAnimations() {
         }, 100 * index);
     });
 }
-
-
-
-
-
-// User Authentication and Session Management
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function RefreshAccessToken() {
-    const tokens = JSON.parse(localStorage.getItem('tokens'));
-    if (!tokens || !tokens.refresh_token) {
-        throw new Error('No refresh token available');
-    }
-
-    try {
-        const response = await fetch('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/KakaoTokenRefresh', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refresh_token: tokens.refresh_token }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to refresh token');
-        }
-
-        const result = await response.json();
-        console.log('Token refresh result:', result);
-        const newTokens = result.tokens;
-
-        // Update tokens in localStorage
-        const updatedTokens = { ...tokens, ...newTokens };
-        localStorage.setItem('tokens', JSON.stringify(updatedTokens));
-
-        // Update user object in localStorage
-        const user = JSON.parse(localStorage.getItem('user'));
-        user.access_token = newTokens.access_token;
-        if (newTokens.refresh_token) {
-            user.refresh_token = newTokens.refresh_token;
-        }
-        user.token_expires_at = new Date(Date.now() + newTokens.expires_in * 1000).toISOString();
-        if (newTokens.id_token) {
-            user.id_token = newTokens.id_token;
-        }
-        localStorage.setItem('user', JSON.stringify(user));
-
-        return newTokens.access_token;
-    } catch (error) {
-        console.error('Error refreshing token:', error);
-        // If refresh fails, redirect to login
-        window.location.href = '/login';
-    }
-}
-
-async function GetValidAccessToken() {
-    if (IsAccessTokenExpired()) {
-        console.log('Access token is expired. Refreshing...');
-        const newAccessToken = await RefreshAccessToken();
-        if (IsRefreshTokenNearExpiration()) {
-            console.log('Refresh token is nearing expiration. User should re-authenticate soon.');
-            // You might want to show a notification to the user here
-        }
-        return newAccessToken;
-    } else {
-        return JSON.parse(localStorage.getItem('tokens')).access_token;
-    }
-}
-
-function IsAccessTokenExpired() {
-    const tokens = JSON.parse(localStorage.getItem('tokens'));
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!tokens || !user) return true;
-
-    const expiresAt = new Date(user.token_expires_at);
-    const now = new Date();
-    return now.getTime() > expiresAt.getTime();
-}
-
-function IsRefreshTokenNearExpiration() {
-    const tokens = JSON.parse(localStorage.getItem('tokens'));
-    if (!tokens || !tokens.refresh_token_expires_in) return false;
-
-    const refreshTokenExpiresAt = new Date(tokens.refresh_token_expires_in * 1000 + Date.now());
-    const oneMonthFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-    return refreshTokenExpiresAt < oneMonthFromNow;
-}
-
-async function RequestNotificationPermission() {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-        document.getElementById('button_notification_allow').style.display = 'none';
-        document.getElementById('device_token').style.display = 'block';
-        await SaveDeviceToken();
-        location.reload();
-    }
-}
-
-function AuthorizeByKakao() {
-    console.log('Attempting Kakao login');
-    Kakao.Auth.authorize({
-        redirectUri: 'https://allsuri-test.netlify.app/oauth/callback',
-    });
-}
-
 
 
 
