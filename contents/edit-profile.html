@@ -68,39 +68,39 @@
                     <div class="col-lg-8">
                         <div class="edit-profile-form">
                             <h2 class="mb-4">프로필 수정</h2>
-                            <form id="editProfileForm">
-                                <div class="mb-3">
-                                    <label for="editNickname" class="form-label">닉네임</label>
-                                    <input type="text" class="form-control" id="editNickname" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="editPhone" class="form-label">전화번호 (XXX-XXXX-XXXX)</label>
-                                    <input type="tel" class="form-control" id="editPhone" pattern="\d{3}-\d{4}-\d{4}" placeholder="010-1234-5678" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="region" class="form-label">지역</label>
-                                    <select class="form-select" id="region" required>
-                                        <option value="">지역 선택</option>
-                                        <!-- Options will be populated dynamically -->
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="city" class="form-label">도시</label>
-                                    <select class="form-select" id="city" required>
-                                        <option value="">도시 선택</option>
-                                        <!-- Options will be populated dynamically based on selected region -->
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">선호 카테고리</label>
-                                    <div id="categoryCheckboxes">
-                                        <!-- Checkboxes will be dynamically added here -->
-                                    </div>
-                                </div>
-                                <div class="text-center">
-                                    <button type="submit" class="btn btn-save-profile"><i class="fas fa-save me-1"></i>프로필 저장</button>
-                                </div>
-                            </form>
+							<form id="editProfileForm">
+								<div class="mb-3">
+									<label for="editNickname" class="form-label">닉네임</label>
+									<input type="text" class="form-control" id="editNickname" required>
+								</div>
+								<div class="mb-3">
+									<label for="editPhone" class="form-label">전화번호 (XXX-XXXX-XXXX)</label>
+									<input type="tel" class="form-control" id="editPhone" pattern="\d{3}-\d{4}-\d{4}" placeholder="010-1234-5678" required>
+								</div>
+								<div class="mb-3">
+									<label for="region" class="form-label">지역</label>
+									<select class="form-select" id="region" required>
+										<option value="">지역 선택</option>
+										<!-- Options will be populated dynamically -->
+									</select>
+								</div>
+								<div class="mb-3">
+									<label for="city" class="form-label">도시</label>
+									<select class="form-select" id="city" required>
+										<option value="">도시 선택</option>
+										<!-- Options will be populated dynamically based on selected region -->
+									</select>
+								</div>
+								<div class="mb-3">
+									<label class="form-label">선호 카테고리</label>
+									<div id="categoryCheckboxes">
+										<!-- Checkboxes will be dynamically added here -->
+									</div>
+								</div>
+								<div class="text-center">
+									<button type="button" id="btn-save-profile" class="btn btn-save-profile"><i class="fas fa-save me-1"></i>프로필 저장</button>
+								</div>
+							</form>
                         </div>
                     </div>
                 </div>
