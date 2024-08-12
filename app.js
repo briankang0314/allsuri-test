@@ -210,7 +210,7 @@ async function clearAppCache() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function FillTheBody(contentName) {
     console.time(`FillTheBody-${contentName}`);
-    ShowLoading();
+    
 
     try {
         if (contentName === 'my-profile') {
@@ -262,7 +262,6 @@ async function FillTheBody(contentName) {
                                         location.reload();
                                     } else {
                                         console.log('Notification permission denied');
-                                        // Optionally, you can update the UI here to reflect the denied status
                                     }
                                 } catch (error) {
                                     console.error('Error requesting notification permission:', error);
@@ -298,38 +297,7 @@ async function FillTheBody(contentName) {
                     await SetupHomePage();
                     break;
                 case 'post-order':
-                    document.getElementById('post-order-form').addEventListener('submit', SubmitOrder);
-                    document.getElementById('cancel-post-order').addEventListener('click', () => FillTheBody('home'));
-                    document.getElementById('baack-btn').addEventListener('click', () => FillTheBody('home'));
-
-                    PopulateRegions();
-                    document.getElementById('region').addEventListener('change', (e) => { PopulateCities(e.target.value); });
-
-                    const feeType = document.getElementById('fee-type');
-                    const feeInputContainer = document.getElementById('fee-input-container');
-                    const feeInput = document.getElementById('fee');
-
-                    feeType.addEventListener('change', function () {
-                        if (this.value === 'fixed') {
-                            feeInputContainer.style.display = 'block';
-                            feeInput.required = true;
-                        } else {
-                            feeInputContainer.style.display = 'none';
-                            feeInput.required = false;
-                            feeInput.value = '';
-                            feeInput.classList.remove('is-invalid');
-                        }
-                    });
-
-                    feeInput.addEventListener('input', function () {
-                        const value = this.value;
-                        if (value === '' || isNaN(value) || value < 0 || value > 100 || !Number.isInteger(Number(value))) {
-                            this.classList.add('is-invalid');
-                        } else {
-                            this.classList.remove('is-invalid');
-                        }
-                    });
-
+                    await SetupPostOrderPage();
                     break;
                 case 'my-orders':
                     await SetupMyOrdersPage();
@@ -343,7 +311,6 @@ async function FillTheBody(contentName) {
         console.error(`Error loading ${contentName}:`, error);
         ShowErrorMessage(`${contentName} 페이지 로딩 중 오류가 발생했습니다. 다시 시도해주세요.`);
     } finally {
-        HideLoading();
         console.timeEnd(`FillTheBody-${contentName}`);
     }
 }
@@ -669,14 +636,14 @@ function SetupHomePageEventListeners() {
     const postOrderBtn = document.getElementById('post-order-btn');
     if (postOrderBtn) {
         postOrderBtn.addEventListener('click', async () => {
-            ShowLoading();
+            
             try {
                 await FillTheBody('post-order');
             } catch (error) {
                 console.error('Error loading post order page:', error);
                 ShowErrorMessage('오더 등록 중에 오류가 발생했습니다. 다시 시도해주세요.');
             } finally {
-                HideLoading();
+                
             }
         });
     }
@@ -714,7 +681,7 @@ function SetupHomePageEventListeners() {
 
 async function FetchAndDisplayOrderPosts(page = 1) {
     console.time('FetchAndDisplayOrderPosts');
-    ShowLoading();
+    
     try {
         console.time('MakeAuthenticatedRequest-GetOrders');
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrders', {
@@ -752,7 +719,7 @@ async function FetchAndDisplayOrderPosts(page = 1) {
         console.error('Error fetching order posts:', error);
         ShowErrorMessage('오더를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        HideLoading();
+        
         console.timeEnd('FetchAndDisplayOrderPosts');
     }
 }
@@ -891,7 +858,7 @@ function SetupFilterAndSort() {
 }
 
 async function RefreshOrderPosts() {
-    ShowLoading();
+    
     try {
         await FetchAndDisplayOrderPosts(1); // Fetch the first page of posts
         ShowErrorMessage('오더 목록이 새로고침되었습니다.', 3000);
@@ -899,7 +866,7 @@ async function RefreshOrderPosts() {
         console.error('Error refreshing order posts:', error);
         ShowErrorMessage('오더 목록 새로고침 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        HideLoading();
+        
     }
 }
 
@@ -920,7 +887,7 @@ function HandleDropdownItemClick(e) {
     }
 
     // Handle the click action
-    ShowLoading();
+    
     try {
         switch (href) {
             case '#profile':
@@ -937,7 +904,7 @@ function HandleDropdownItemClick(e) {
         console.error('Error handling dropdown item click:', error);
         ShowErrorMessage('오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        HideLoading();
+        
     }
 }
 
@@ -1217,7 +1184,7 @@ function SetupEditProfileModal(profile) {
 }
 
 async function SaveProfileChanges(userId) {
-    ShowLoading();
+    
     const updatedProfile = {
         user_id: userId,
         nickname: document.getElementById('editNickname').value,
@@ -1275,7 +1242,7 @@ async function SaveProfileChanges(userId) {
         console.error('Error updating profile:', error);
         ShowErrorMessage('프로필 업데이트에 실패했습니다. 다시 시도해 주세요.');
     } finally {
-        HideLoading();
+        
     }
 }
 
@@ -1316,176 +1283,10 @@ function InitializeAnimations() {
 
 
 
-
-
-// Profile Management
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 // My Orders Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function RefreshMyOrderPosts() {
-    ShowLoading();
-    try {
-        await FetchAndDisplayMyOrderPosts(1); // Fetch the first page of my posts
-        ShowErrorMessage('내 오더 목록이 새로고침되었습니다.', 3000);
-    } catch (error) {
-        console.error('Error refreshing my order posts:', error);
-        ShowErrorMessage('내 오더 목록 새로고침 중 오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
-        HideLoading();
-    }
-}
-
-function SetupMyOrdersFilterAndSort() {
-    const regionFilter = document.getElementById('region-filter');
-    const cityFilter = document.getElementById('city-filter');
-    const statusFilter = document.getElementById('status-filter');
-    const sortOption = document.getElementById('sort-option');
-
-    PopulateRegionFilter(regionFilter);
-
-    regionFilter.addEventListener('change', async (e) => {
-        myOrdersCurrentFilters.region = e.target.value;
-        myOrdersCurrentFilters.city = '';
-        PopulateCityFilter(cityFilter, e.target.value);
-        await FetchAndDisplayMyOrderPosts(1);
-    });
-
-    cityFilter.addEventListener('change', async (e) => {
-        myOrdersCurrentFilters.city = e.target.value;
-        await FetchAndDisplayMyOrderPosts(1);
-    });
-
-    statusFilter.addEventListener('change', async (e) => {
-        myOrdersCurrentFilters.status = e.target.value;
-        await FetchAndDisplayMyOrderPosts(1);
-    });
-
-    sortOption.addEventListener('change', async (e) => {
-        myOrdersCurrentSort = e.target.value;
-        await FetchAndDisplayMyOrderPosts(1);
-    });
-}
-
-
-
-
-
-
-
-// Order Management
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function SubmitOrder(event) {
-    if (!await CheckProfileCompleteness()) {
-        ShowErrorMessage('오더를 등록하려면 프로필을 완성해야 합니다.');
-        await FillTheBody('my-profile');
-        ShowIncompleteProfileWarning();
-        return;
-    }
-
-    event.preventDefault();
-    ShowLoading();
-    console.log('SubmitOrder function called');
-
-    const title = document.getElementById('title').value;
-    const category = document.getElementById('category').value;
-    const regionId = document.getElementById('region').value;
-    const city = document.getElementById('city').value;
-    const description = document.getElementById('description').value;
-    const feeType = document.getElementById('fee-type').value;
-    const feeInput = document.getElementById('fee');
-
-    // Validate fee input if fixed fee is selected
-    if (feeType === 'fixed') {
-        const feeValue = feeInput.value;
-        if (feeValue === '' || isNaN(feeValue) || feeValue < 0 || feeValue > 100 || !Number.isInteger(Number(feeValue))) {
-            feeInput.classList.add('is-invalid');
-            HideLoading();
-            return;
-        }
-    }
-
-    // Set fee to -1 if 'adjustable', otherwise use the input value
-    const fee = feeType === 'adjustable' ? -1 : Number(feeInput.value);
-
-    const orderData = {
-        title,
-        category,
-        region: regions.find(r => r.id == regionId).name,
-        city: regionId == 9 ? '세종시' : city,  // Use '세종시' for Sejong
-        fee: Number(fee),
-        description
-    };
-
-    console.log('Order data:', orderData);
-
-    try {
-        console.log('Attempting to make authenticated request');
-        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/SubmitOrder', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderData)
-        });
-
-        console.log('Response received:', response);
-        const result = await response.json();
-        console.log('Order submitted successfully:', result);
-        // Redirect to home page or show success message
-        FillTheBody('home');
-    } catch (error) {
-        console.error('Error submitting order:', error);
-        let errorMessage = '예상치 못한 오류가 발생했습니다. 다시 시도해주세요.';
-        if (error.message.includes('401') || error.message.includes('403')) {
-            errorMessage = '인증되지 않았습니다. 다시 로그인해주세요.';
-            // Optionally, redirect to login page or refresh the token
-            // RefreshToken(); // You would need to implement this function
-        } else if (error.message.includes('400')) {
-            errorMessage = '오더를 제출하는 중 오류가 발생했습니다. 모든 필드를 채워주세요.';
-        }
-        // Show error message to user
-        alert(errorMessage);
-    } finally {
-        HideLoading();
-    }
-}
-
-async function SetupMyOrdersPage() {
-    const backBtn = document.getElementById('back-btn');
-    if (backBtn) {
-        backBtn.addEventListener('click', () => FillTheBody('home'));
-    }
-
-    const newOrderBtn = document.getElementById('new-order-btn');
-    if (newOrderBtn) {
-        newOrderBtn.addEventListener('click', () => FillTheBody('post-order'));
-    }
-
-    const refreshBtn = document.getElementById('refresh-btn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', RefreshMyOrderPosts);
-    }
-
-    SetupMyOrdersFilterAndSort();
-    await FetchAndDisplayMyOrderPosts(1);
-
-    const paginationContainer = document.getElementById('pagination-container');
-    if (paginationContainer) {
-        paginationContainer.addEventListener('click', async (e) => {
-            if (e.target.tagName === 'A' && e.target.getAttribute('data-page')) {
-                e.preventDefault();
-                const page = parseInt(e.target.getAttribute('data-page'));
-                await FetchAndDisplayMyOrderPosts(page);
-            }
-        });
-    }
-}
-
 async function FetchAndDisplayMyOrderPosts(page = 1) {
-    ShowLoading();
+    
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrders', {
             method: 'POST',
@@ -1517,7 +1318,38 @@ async function FetchAndDisplayMyOrderPosts(page = 1) {
         console.error('Error fetching my orders:', error);
         ShowErrorMessage('내 오더를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        HideLoading();
+        
+    }
+}
+
+async function SetupMyOrdersPage() {
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => FillTheBody('home'));
+    }
+
+    const newOrderBtn = document.getElementById('new-order-btn');
+    if (newOrderBtn) {
+        newOrderBtn.addEventListener('click', () => FillTheBody('post-order'));
+    }
+
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', RefreshMyOrderPosts);
+    }
+
+    SetupMyOrdersFilterAndSort();
+    await FetchAndDisplayMyOrderPosts(1);
+
+    const paginationContainer = document.getElementById('pagination-container');
+    if (paginationContainer) {
+        paginationContainer.addEventListener('click', async (e) => {
+            if (e.target.tagName === 'A' && e.target.getAttribute('data-page')) {
+                e.preventDefault();
+                const page = parseInt(e.target.getAttribute('data-page'));
+                await FetchAndDisplayMyOrderPosts(page);
+            }
+        });
     }
 }
 
@@ -1581,6 +1413,50 @@ function DisplayMyOrderPosts(myOrders) {
     });
 }
 
+async function RefreshMyOrderPosts() {
+    
+    try {
+        await FetchAndDisplayMyOrderPosts(1); // Fetch the first page of my posts
+        ShowErrorMessage('내 오더 목록이 새로고침되었습니다.', 3000);
+    } catch (error) {
+        console.error('Error refreshing my order posts:', error);
+        ShowErrorMessage('내 오더 목록 새로고침 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+        
+    }
+}
+
+function SetupMyOrdersFilterAndSort() {
+    const regionFilter = document.getElementById('region-filter');
+    const cityFilter = document.getElementById('city-filter');
+    const statusFilter = document.getElementById('status-filter');
+    const sortOption = document.getElementById('sort-option');
+
+    PopulateRegionFilter(regionFilter);
+
+    regionFilter.addEventListener('change', async (e) => {
+        myOrdersCurrentFilters.region = e.target.value;
+        myOrdersCurrentFilters.city = '';
+        PopulateCityFilter(cityFilter, e.target.value);
+        await FetchAndDisplayMyOrderPosts(1);
+    });
+
+    cityFilter.addEventListener('change', async (e) => {
+        myOrdersCurrentFilters.city = e.target.value;
+        await FetchAndDisplayMyOrderPosts(1);
+    });
+
+    statusFilter.addEventListener('change', async (e) => {
+        myOrdersCurrentFilters.status = e.target.value;
+        await FetchAndDisplayMyOrderPosts(1);
+    });
+
+    sortOption.addEventListener('change', async (e) => {
+        myOrdersCurrentSort = e.target.value;
+        await FetchAndDisplayMyOrderPosts(1);
+    });
+}
+
 function ShowMyOrderDetails(order) {
     currentOrderId = order.order_id;
     const modalTitle = document.getElementById('orderDetailsModalLabel');
@@ -1634,7 +1510,7 @@ async function DeleteOrder(orderId) {
         return;
     }
 
-    ShowLoading();
+    
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/DeleteOrder', {
             method: 'POST',
@@ -1660,7 +1536,7 @@ async function DeleteOrder(orderId) {
         console.error('Error deleting order:', error);
         ShowErrorMessage(error.message || '오더 삭제 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        HideLoading();
+        
     }
 }
 
@@ -1670,8 +1546,128 @@ async function DeleteOrder(orderId) {
 
 
 
+// Post Order Page
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function SubmitOrder(event) {
+    if (!await CheckProfileCompleteness()) {
+        ShowErrorMessage('오더를 등록하려면 프로필을 완성해야 합니다.');
+        await FillTheBody('my-profile');
+        ShowIncompleteProfileWarning();
+        return;
+    }
 
-// Application Handling
+    event.preventDefault();
+    
+    console.log('SubmitOrder function called');
+
+    const title = document.getElementById('title').value;
+    const category = document.getElementById('category').value;
+    const regionId = document.getElementById('region').value;
+    const city = document.getElementById('city').value;
+    const description = document.getElementById('description').value;
+    const feeType = document.getElementById('fee-type').value;
+    const feeInput = document.getElementById('fee');
+
+    // Validate fee input if fixed fee is selected
+    if (feeType === 'fixed') {
+        const feeValue = feeInput.value;
+        if (feeValue === '' || isNaN(feeValue) || feeValue < 0 || feeValue > 100 || !Number.isInteger(Number(feeValue))) {
+            feeInput.classList.add('is-invalid');
+            
+            return;
+        }
+    }
+
+    // Set fee to -1 if 'adjustable', otherwise use the input value
+    const fee = feeType === 'adjustable' ? -1 : Number(feeInput.value);
+
+    const orderData = {
+        title,
+        category,
+        region: regions.find(r => r.id == regionId).name,
+        city: regionId == 9 ? '세종시' : city,  // Use '세종시' for Sejong
+        fee: Number(fee),
+        description
+    };
+
+    console.log('Order data:', orderData);
+
+    try {
+        console.log('Attempting to make authenticated request');
+        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/SubmitOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        console.log('Response received:', response);
+        const result = await response.json();
+        console.log('Order submitted successfully:', result);
+        // Redirect to home page or show success message
+        FillTheBody('home');
+    } catch (error) {
+        console.error('Error submitting order:', error);
+        let errorMessage = '예상치 못한 오류가 발생했습니다. 다시 시도해주세요.';
+        if (error.message.includes('401') || error.message.includes('403')) {
+            errorMessage = '인증되지 않았습니다. 다시 로그인해주세요.';
+            // Optionally, redirect to login page or refresh the token
+            // RefreshToken(); // You would need to implement this function
+        } else if (error.message.includes('400')) {
+            errorMessage = '오더를 제출하는 중 오류가 발생했습니다. 모든 필드를 채워주세요.';
+        }
+        // Show error message to user
+        alert(errorMessage);
+    } finally {
+        
+    }
+}
+
+async function SetupPostOrderPage() {
+    // Set up event listeners
+    document.getElementById('post-order-form').addEventListener('submit', SubmitOrder);
+    document.getElementById('cancel-post-order').addEventListener('click', () => FillTheBody('home'));
+    document.getElementById('baack-btn').addEventListener('click', () => FillTheBody('home'));
+
+    // Populate regions and set up region change listener
+    PopulateRegions();
+    document.getElementById('region').addEventListener('change', (e) => { PopulateCities(e.target.value); });
+
+    // Set up fee type and input handling
+    const feeType = document.getElementById('fee-type');
+    const feeInputContainer = document.getElementById('fee-input-container');
+    const feeInput = document.getElementById('fee');
+
+    feeType.addEventListener('change', function () {
+        if (this.value === 'fixed') {
+            feeInputContainer.style.display = 'block';
+            feeInput.required = true;
+        } else {
+            feeInputContainer.style.display = 'none';
+            feeInput.required = false;
+            feeInput.value = '';
+            feeInput.classList.remove('is-invalid');
+        }
+    });
+
+    feeInput.addEventListener('input', function () {
+        const value = this.value;
+        if (value === '' || isNaN(value) || value < 0 || value > 100 || !Number.isInteger(Number(value))) {
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+}
+
+
+
+
+
+
+
+// Application Management
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function OpenApplicationForm() {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -1681,7 +1677,7 @@ async function OpenApplicationForm() {
     }
 
     try {
-        ShowLoading(); // Show loading indicator
+         // Show loading indicator
 
         // Fetch user profile
         const profile = await FetchUserProfile();
@@ -1728,7 +1724,7 @@ async function OpenApplicationForm() {
         console.error('Error opening application form:', error);
         alert('지원 양식을 열 수 없습니다. 다시 시도해 주세요.');
     } finally {
-        HideLoading(); // Hide loading indicator
+         // Hide loading indicator
     }
 }
 
@@ -1763,7 +1759,7 @@ async function SubmitApplication() {
     };
 
     try {
-        ShowLoading(); // Show loading indicator
+         // Show loading indicator
 
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/SubmitApplication', {
             method: 'POST',
@@ -1789,7 +1785,7 @@ async function SubmitApplication() {
         console.error('Error submitting application:', error);
         alert('지원 제출 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
-        HideLoading(); // Hide loading indicator
+         // Hide loading indicator
     }
 }
 
@@ -1868,7 +1864,7 @@ async function FetchAndDisplayApplications(orderId) {
         return;
     }
 
-    ShowLoading();
+    
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrderApplications', {
             method: 'POST',
@@ -1901,7 +1897,7 @@ async function FetchAndDisplayApplications(orderId) {
         console.error('Error fetching order applications:', error);
         ShowErrorMessage('지원서를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        HideLoading();
+        
     }
 }
 
@@ -2025,7 +2021,7 @@ async function AcceptApplication(applicationId) {
         return;
     }
 
-    ShowLoading();
+    
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/AcceptApplication', {
             method: 'POST',
@@ -2059,7 +2055,7 @@ async function AcceptApplication(applicationId) {
         console.error('Error accepting application:', error);
         ShowErrorMessage('지원서 수락 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        HideLoading();
+        
     }
 }
 
@@ -2068,7 +2064,7 @@ async function RejectApplication(applicationId) {
         return;
     }
 
-    ShowLoading();
+    
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/RejectApplication', {
             method: 'POST',
@@ -2104,7 +2100,7 @@ async function RejectApplication(applicationId) {
         console.error('Error rejecting application:', error);
         ShowErrorMessage('지원서 거절 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        HideLoading();
+        
     }
 }
 
@@ -2114,7 +2110,7 @@ async function RejectAllApplications() {
     //     return;
     // }
 
-    // ShowLoading();
+    // 
     // try {
     //     const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/RejectAllApplications', {
     //         method: 'POST',
@@ -2138,7 +2134,7 @@ async function RejectAllApplications() {
     //     console.error('Error rejecting all applications:', error);
     //     ShowErrorMessage('지원서 일괄 거절 중 오류가 발생했습니다. 다시 시도해주세요.');
     // } finally {
-    //     HideLoading();
+    //     
     // }
 }
 
@@ -2346,14 +2342,14 @@ function CloseAllModals() {
     // const loginInfoBtn = document.getElementById('user-login-info-btn');
     // if (loginInfoBtn) {
     //     loginInfoBtn.addEventListener('click', async () => {
-    //         ShowLoading();
+    //         
     //         try {
     //             await FillTheBody('user-login-info');
     //         } catch (error) {
     //             console.error('Error loading user login info:', error);
     //             ShowErrorMessage('유저 정보 불러오기에 실패했습니다. 다시 시도해주세요.');
     //         } finally {
-    //             HideLoading();
+    //             
     //         }
     //     });
     // }
