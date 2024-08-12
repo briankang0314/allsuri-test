@@ -772,9 +772,9 @@ function DisplayOrderPosts(orderPosts) {
                 }
             }
 
-            const viewDetailsBtn = orderCard.querySelector('.view-details');
-            if (viewDetailsBtn) {
-                viewDetailsBtn.addEventListener('click', () => ShowOrderDetails(order, currentUser));
+            const cardElement = orderCard.querySelector('.order-card');
+            if (cardElement) {
+                cardElement.addEventListener('click', () => ShowOrderDetails(order, currentUser));
             }
 
             // Show "내가 올린 오더" badge if the order is posted by the current user
