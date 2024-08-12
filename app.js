@@ -1227,7 +1227,9 @@ async function SaveProfileChanges() {
         region: regions.find(r => r.id == document.getElementById('region').value)?.name,
         city: document.getElementById('region').value == 9 ? '세종시' : document.getElementById('city').value,
         preferred_categories: Array.from(document.querySelectorAll('#categoryCheckboxes input:checked')).map(input => input.value)
-    };    
+    };
+    
+    console.log('Updated profile:', updatedProfile);
 
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/UpdateProfile', {
@@ -1242,6 +1244,8 @@ async function SaveProfileChanges() {
         });
 
         const result = await response.json();
+        console.log('Profile update result:', result);
+
         if (result.success) {
             ShowErrorMessage('프로필이 성공적으로 업데이트되었습니다.', 3000);
 
@@ -1250,7 +1254,8 @@ async function SaveProfileChanges() {
             localStorage.setItem('user', JSON.stringify(user));
 
             if (await CheckProfileCompleteness()) {
-                await FillTheBody('home');
+                console.log('Profile is complete');
+                await FillTheBody('my-profile');
             } else {
                 await FillTheBody('my-profile');
             }
