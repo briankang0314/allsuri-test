@@ -1167,7 +1167,7 @@ async function SetupEditProfilePage() {
         backBtn.addEventListener('click', () => FillTheBody('my-profile'));
     }
 
-    const saveProfileChangesBtn = document.getElementById('saveProfileChanges');
+    const saveProfileChangesBtn = document.getElementById('btn-save-profile');
     if (saveProfileChangesBtn) {
         saveProfileChangesBtn.addEventListener('click', SaveProfileChanges);
     }
