@@ -230,7 +230,6 @@ async function FillTheBody(contentName) {
             // Set up the page with the fetched profile data
             SetupMyProfileEventListeners();
             UpdateProfileUI(profile);
-            SetupEditProfileModal(profile);
         } else {
             // For all other pages, proceed as before
             const content = await fetch(`/contents/${contentName}.html`).then(response => response.text());
@@ -295,6 +294,9 @@ async function FillTheBody(contentName) {
                     break;
                 case 'home':
                     await SetupHomePage();
+                    break;
+                case 'edit-profile':
+                    await SetupEditProfilePage();
                     break;
                 case 'post-order':
                     await SetupPostOrderPage();
@@ -1045,15 +1047,7 @@ function SetupMyProfileEventListeners() {
 
     const editProfileBtn = document.getElementById('edit-profile-btn');
     if (editProfileBtn) {
-        editProfileBtn.addEventListener('click', OpenEditProfileModal);
-    }
-
-    const phoneInput = document.getElementById('editPhone');
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function (e) {
-            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,4})(\d{0,4})/);
-            e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '');
-        });
+        editProfileBtn.addEventListener('click', () => FillTheBody('edit-profile'));
     }
 
     InitializeAnimations();
@@ -1143,26 +1137,75 @@ function UpdatePreferredCategories(categories) {
     });
 }
 
-function OpenEditProfileModal() {
-    const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
-    modal.show();
+function ShowIncompleteProfileWarning() {
+    const warningElement = document.getElementById('incomplete-profile-warning');
+    if (warningElement) {
+        warningElement.style.display = 'block';
+    }
+
+    const completeProfileBtn = document.getElementById('complete-profile-btn');
+    if (completeProfileBtn) {
+        completeProfileBtn.addEventListener('click', () => FillTheBody('edit-profile'));
+    }
+}
+
+function InitializeAnimations() {
+    const statItems = document.querySelectorAll('.stat-item');
+    statItems.forEach((item, index) => {
+        item.style.opacity = 0;
+        setTimeout(() => {
+            item.style.opacity = 1;
+        }, 100 * index);
+    });
+}
+
+
+
+
+
+
+
+// Edit Profile Page
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function SetupEditProfilePage() {
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => FillTheBody('my-profile'));
+    }
 
     const saveProfileChangesBtn = document.getElementById('saveProfileChanges');
     if (saveProfileChangesBtn) {
         saveProfileChangesBtn.addEventListener('click', SaveProfileChanges);
     }
+
+    const phoneInput = document.getElementById('editPhone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function (e) {
+            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,4})(\d{0,4})/);
+            e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '');
+        });
+    }
+
+    const profile = await FetchUserProfile();
+    if (profile) {
+        PopulateEditProfileForm(profile);
+    } else {
+        ShowErrorMessage('프로필 정보를 불러오는데 실패했습니다.');
+    }
 }
 
-function SetupEditProfileModal(profile) {
-    // Set up input fields
+function PopulateEditProfileForm(profile) {
     document.getElementById('editNickname').value = profile.nickname ?? '';
     document.getElementById('editPhone').value = profile.phone ?? '';
 
-    // Populate regions using the existing function
     PopulateRegions();
-    document.getElementById('region').addEventListener('change', (e) => { PopulateCities(e.target.value); });
+    const regionSelect = document.getElementById('region');
+    regionSelect.value = regions.find(r => r.name === profile.region)?.id ?? '';
+    regionSelect.addEventListener('change', (e) => { PopulateCities(e.target.value); });
 
-    // Set up category checkboxes
+    PopulateCities(regionSelect.value);
+    document.getElementById('city').value = profile.city ?? '';
+
     const categoryCheckboxes = document.getElementById('categoryCheckboxes');
     categoryCheckboxes.innerHTML = '';
     allCategories.forEach(category => {
@@ -1175,18 +1218,10 @@ function SetupEditProfileModal(profile) {
         `;
         categoryCheckboxes.appendChild(div);
     });
-
-    // Set up save changes button
-    const saveProfileChangesBtn = document.getElementById('saveProfileChanges');
-    if (saveProfileChangesBtn) {
-        saveProfileChangesBtn.addEventListener('click', () => SaveProfileChanges(profile.user_id));
-    }
 }
 
-async function SaveProfileChanges(userId) {
-    
+async function SaveProfileChanges() {
     const updatedProfile = {
-        user_id: userId,
         nickname: document.getElementById('editNickname').value,
         phone: document.getElementById('editPhone').value,
         region: regions.find(r => r.id == document.getElementById('region').value)?.name,
@@ -1214,26 +1249,10 @@ async function SaveProfileChanges(userId) {
             user = { ...user, ...updatedProfile };
             localStorage.setItem('user', JSON.stringify(user));
 
-            if (CheckProfileCompleteness(user)) {
-                const incompleteProfileWarning = document.getElementById('incomplete-profile-warning');
-                if (incompleteProfileWarning) {
-                    incompleteProfileWarning.style.display = 'none';
-                }
+            if (await CheckProfileCompleteness()) {
                 await FillTheBody('home');
             } else {
-                UpdateProfileUI(user);
-            }
-
-            const modalElement = document.getElementById('editProfileModal');
-            if (modalElement) {
-                const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                if (modalInstance) {
-                    modalInstance.hide();
-                } else {
-                    console.warn('Modal instance not found, unable to hide modal');
-                }
-            } else {
-                console.warn('Modal element not found');
+                await FillTheBody('my-profile');
             }
         } else {
             throw new Error(result.message || '프로필 업데이트에 실패했습니다.');
@@ -1241,8 +1260,6 @@ async function SaveProfileChanges(userId) {
     } catch (error) {
         console.error('Error updating profile:', error);
         ShowErrorMessage('프로필 업데이트에 실패했습니다. 다시 시도해 주세요.');
-    } finally {
-        
     }
 }
 
@@ -1252,28 +1269,6 @@ async function CheckProfileCompleteness() {
 
     const requiredFields = ['phone', 'region', 'city', 'preferred_categories'];
     return requiredFields.every(field => user[field] && user[field].length > 0);
-}
-
-function ShowIncompleteProfileWarning() {
-    const warningElement = document.getElementById('incomplete-profile-warning');
-    if (warningElement) {
-        warningElement.style.display = 'block';
-    }
-
-    const completeProfileBtn = document.getElementById('complete-profile-btn');
-    if (completeProfileBtn) {
-        completeProfileBtn.addEventListener('click', OpenEditProfileModal);
-    }
-}
-
-function InitializeAnimations() {
-    const statItems = document.querySelectorAll('.stat-item');
-    statItems.forEach((item, index) => {
-        item.style.opacity = 0;
-        setTimeout(() => {
-            item.style.opacity = 1;
-        }, 100 * index);
-    });
 }
 
 
