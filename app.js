@@ -1104,12 +1104,6 @@ function UpdateProfileUI(profile) {
 
     // Preferred categories
     UpdatePreferredCategories(profile.preferred_categories);
-
-    // // Badges and achievements
-    // UpdateBadges(profile.badges);
-
-    // Notification preferences
-    // document.getElementById('notification-preferences').textContent = profile.notification_preferences ?? '알림 설정 정보 없음';
 }
 
 function UpdateProfileCompletionBar(percentage) {
@@ -1232,6 +1226,7 @@ async function SaveProfileChanges() {
     console.log('Updated profile:', updatedProfile);
 
     try {
+        console.log('Updating profile...');
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/UpdateProfile', {
             method: 'POST',
             headers: {
@@ -1257,6 +1252,7 @@ async function SaveProfileChanges() {
                 console.log('Profile is complete');
                 await FillTheBody('my-profile');
             } else {
+                console.log('Profile is incomplete');
                 await FillTheBody('my-profile');
             }
         } else {
