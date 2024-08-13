@@ -1379,26 +1379,43 @@ function DisplayMyOrderPosts(myOrders) {
             PopulateOrderCard(orderCard, '.card-title', order.title || 'No Title');
             PopulateOrderCard(orderCard, '.card-subtitle', order.location || 'No Location');
             PopulateOrderCard(orderCard, '.order-meta', `상태: ${order.status === 'open' ? '지원가능' : '마감'} • 지원자 ${order.applicants_count || 0}명 • 등록일: ${GetTimeAgo(order.created_at)}`);
+            PopulateOrderCard(orderCard, '.order-fee', `수수료: ${order.fee === -1 ? '수수료 조정 가능' : `${Number(order.fee || 0).toLocaleString()}%`}`);
 
-            const viewDetailsBtn = orderCard.querySelector('.view-details');
-            if (viewDetailsBtn) {
-                viewDetailsBtn.addEventListener('click', () => ShowMyOrderDetails(order));
+            const statusBadge = orderCard.querySelector('.order-status');
+            if (statusBadge) {
+                statusBadge.textContent = order.status === 'open' ? '지원가능' : '마감';
+                statusBadge.classList.add(order.status === 'open' ? 'bg-success' : 'bg-danger');
+            }
+
+            const cardElement = orderCard.querySelector('.order-card');
+            if (cardElement) {
+                cardElement.addEventListener('click', (e) => {
+                    // Prevent click event when clicking on buttons
+                    if (!e.target.closest('.btn-edit-order') && !e.target.closest('.btn-delete-order')) {
+                        ShowMyOrderDetails(order);
+                    }
+                });
             }
 
             const editOrderBtn = orderCard.querySelector('.btn-edit-order');
             if (editOrderBtn) {
-                editOrderBtn.addEventListener('click', () => EditOrder(order.order_id));
+                editOrderBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click event
+                    EditOrder(order.order_id);
+                });
             }
 
             const deleteOrderBtn = orderCard.querySelector('.btn-delete-order');
             if (deleteOrderBtn) {
-                deleteOrderBtn.addEventListener('click', () => DeleteOrder(order.order_id));
+                deleteOrderBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card click event
+                    DeleteOrder(order.order_id);
+                });
             }
 
             // Add a data attribute to the order card for easy removal after deletion
-            const orderCardElement = orderCard.querySelector('.order-card');
-            if (orderCardElement) {
-                orderCardElement.setAttribute('data-order-id', order.order_id);
+            if (cardElement) {
+                cardElement.setAttribute('data-order-id', order.order_id);
             }
 
 

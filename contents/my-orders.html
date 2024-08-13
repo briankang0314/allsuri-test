@@ -60,12 +60,10 @@
             padding: 20px;
             margin-bottom: 20px;
         }
-        .order-card {
-            border: none;
-            border-radius: 15px;
+        .order-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .order-card:hover {
             transform: translateY(-5px);
@@ -160,20 +158,21 @@
     <!-- Template for order cards -->
     <template id="order-card-template">
         <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card order-card h-100 shadow-sm">
+            <div class="card order-card h-100" style="cursor: pointer;">
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h5 class="card-title text-truncate mb-0"></h5>
-                        <span class="badge order-status rounded-pill"></span>
+                        <div>
+                            <span class="badge order-status rounded-pill me-2"></span>
+                            <button class="btn btn-sm btn-outline-secondary btn-edit-order me-1">수정</button>
+                            <button class="btn btn-sm btn-outline-danger btn-delete-order">삭제</button>
+                        </div>
                     </div>
                     <h6 class="card-subtitle mb-2 text-muted"></h6>
                     <p class="order-meta small text-muted mb-3"></p>
-                    <button class="btn btn-sm btn-outline-secondary btn-edit-order">수정</button>
-                    <div class="mt-auto d-flex justify-content-between align-items-center">
-                        <button class="btn btn-sm btn-outline-primary view-details">상세 보기</button>
+                    <div class="mt-auto d-flex justify-content-end align-items-center">
                         <span class="fw-bold order-fee text-primary"></span>
                     </div>
-                    <button class="btn btn-sm btn-outline-danger btn-delete-order">삭제</button>
                 </div>
             </div>
         </div>
