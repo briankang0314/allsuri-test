@@ -1378,8 +1378,8 @@ function DisplayMyOrderPosts(myOrders) {
         try {
             PopulateOrderCard(orderCard, '.card-title', order.title || 'No Title');
             PopulateOrderCard(orderCard, '.card-subtitle', order.location || 'No Location');
-            PopulateOrderCard(orderCard, '.order-meta', `상태: ${order.status === 'open' ? '지원가능' : '마감'} • 지원자 ${order.applicants_count || 0}명 • 등록일: ${GetTimeAgo(order.created_at)}`);
-            PopulateOrderCard(orderCard, '.order-fee', `수수료: ${order.fee === -1 ? '수수료 조정 가능' : `${Number(order.fee || 0).toLocaleString()}%`}`);
+            PopulateOrderCard(orderCard, '.order-meta', `지원자 ${order.applicants_count || 0}명 • 등록일: ${GetTimeAgo(order.created_at)}`);
+            PopulateOrderCard(orderCard, '.order-fee', `${order.fee === -1 ? '수수료 조정 가능' : `${Number(order.fee || 0).toLocaleString()}%`}`);
 
             const statusBadge = orderCard.querySelector('.order-status');
             if (statusBadge) {
