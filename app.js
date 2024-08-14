@@ -1537,82 +1537,6 @@ async function DeleteOrder(orderId) {
 
 // Post Order Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function SubmitOrder(event) {
-    if (!await CheckProfileCompleteness()) {
-        ShowErrorMessage('오더를 등록하려면 프로필을 완성해야 합니다.');
-        await FillTheBody('my-profile');
-        ShowIncompleteProfileWarning();
-        return;
-    }
-
-    event.preventDefault();
-    
-    console.log('SubmitOrder function called');
-
-    const title = document.getElementById('title').value;
-    const category = document.getElementById('category').value;
-    const regionId = document.getElementById('region').value;
-    const city = document.getElementById('city').value;
-    const description = document.getElementById('description').value;
-    const feeType = document.getElementById('fee-type').value;
-    const feeInput = document.getElementById('fee');
-
-    // Validate fee input if fixed fee is selected
-    if (feeType === 'fixed') {
-        const feeValue = feeInput.value;
-        if (feeValue === '' || isNaN(feeValue) || feeValue < 0 || feeValue > 100 || !Number.isInteger(Number(feeValue))) {
-            feeInput.classList.add('is-invalid');
-            
-            return;
-        }
-    }
-
-    // Set fee to -1 if 'adjustable', otherwise use the input value
-    const fee = feeType === 'adjustable' ? -1 : Number(feeInput.value);
-
-    const orderData = {
-        title,
-        category,
-        region: regions.find(r => r.id == regionId).name,
-        city: regionId == 9 ? '세종시' : city,  // Use '세종시' for Sejong
-        fee: Number(fee),
-        description
-    };
-
-    console.log('Order data:', orderData);
-
-    try {
-        console.log('Attempting to make authenticated request');
-        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/SubmitOrder', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderData)
-        });
-
-        console.log('Response received:', response);
-        const result = await response.json();
-        console.log('Order submitted successfully:', result);
-        // Redirect to home page or show success message
-        FillTheBody('home');
-    } catch (error) {
-        console.error('Error submitting order:', error);
-        let errorMessage = '예상치 못한 오류가 발생했습니다. 다시 시도해주세요.';
-        if (error.message.includes('401') || error.message.includes('403')) {
-            errorMessage = '인증되지 않았습니다. 다시 로그인해주세요.';
-            // Optionally, redirect to login page or refresh the token
-            // RefreshToken(); // You would need to implement this function
-        } else if (error.message.includes('400')) {
-            errorMessage = '오더를 제출하는 중 오류가 발생했습니다. 모든 필드를 채워주세요.';
-        }
-        // Show error message to user
-        alert(errorMessage);
-    } finally {
-        
-    }
-}
-
 async function SetupPostOrderPage() {
     // Set up event listeners
     document.getElementById('post-order-form').addEventListener('submit', SubmitOrder);
@@ -1648,6 +1572,81 @@ async function SetupPostOrderPage() {
             this.classList.remove('is-invalid');
         }
     });
+}
+
+async function SubmitOrder(event) {
+    event.preventDefault();
+    
+    if (!await CheckProfileCompleteness()) {
+        ShowErrorMessage('오더를 등록하려면 프로필을 완성해야 합니다.');
+        await FillTheBody('my-profile');
+        ShowIncompleteProfileWarning();
+        return;
+    }
+
+    console.log('SubmitOrder function called');
+
+    const title = document.getElementById('title').value;
+    const category = document.getElementById('category').value;
+    const regionId = document.getElementById('region').value;
+    const city = document.getElementById('city').value;
+    const description = document.getElementById('description').value;
+    const feeType = document.getElementById('fee-type').value;
+    const feeInput = document.getElementById('fee');
+
+    // Validate fee input if fixed fee is selected
+    if (feeType === 'fixed') {
+        const feeValue = feeInput.value;
+        if (feeValue === '' || isNaN(feeValue) || feeValue < 0 || feeValue > 100 || !Number.isInteger(Number(feeValue))) {
+            feeInput.classList.add('is-invalid');
+            ShowErrorMessage('유효한 고정 수수료를 입력해주세요. (0-100 사이의 정수)');
+            return;
+        }
+    }
+
+    // Set fee to -1 if 'adjustable', otherwise use the input value
+    const fee = feeType === 'adjustable' ? -1 : Number(feeInput.value);
+
+    const orderData = {
+        title,
+        category,
+        region: regions.find(r => r.id == regionId).name,
+        city: regionId == 9 ? '세종시' : city,  // Use '세종시' for Sejong
+        fee: Number(fee),
+        description
+    };
+
+    console.log('Order data:', orderData);
+
+    try {
+        console.log('Attempting to make authenticated request');
+        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/SubmitOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        console.log('Response received:', response);
+        const result = await response.json();
+        console.log('Order submitted successfully:', result);
+        
+        ShowSuccessMessage('오더가 성공적으로 제출되었습니다!');
+        // Redirect to home page after a short delay
+        setTimeout(() => FillTheBody('home'), 2000);
+    } catch (error) {
+        console.error('Error submitting order:', error);
+        let errorMessage = '예상치 못한 오류가 발생했습니다. 다시 시도해주세요.';
+        if (error.message.includes('401') || error.message.includes('403')) {
+            errorMessage = '인증되지 않았습니다. 다시 로그인해주세요.';
+            // Optionally, redirect to login page or refresh the token
+            // RefreshToken(); // You would need to implement this function
+        } else if (error.message.includes('400')) {
+            errorMessage = '오더를 제출하는 중 오류가 발생했습니다. 모든 필드를 채워주세요.';
+        }
+        ShowErrorMessage(errorMessage);
+    }
 }
 
 
