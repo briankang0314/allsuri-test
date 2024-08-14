@@ -1658,6 +1658,21 @@ async function SetupPostOrderPage() {
 
 // Application Management
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// async function SetupApplyForOrderPage() {
+//     const profile = await FetchUserProfile();
+//     if (profile) {
+//         document.getElementById('applicantName').value = profile.nickname || '';
+//         document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
+//     }
+
+//     document.getElementById('applicationForm').addEventListener('submit', async (e) => {
+//         e.preventDefault();
+//         await SubmitApplication();
+//     });
+
+//     document.getElementById('addAvailabilityBtn').addEventListener('click', AddAvailabilitySlot);
+// }
+
 async function SetupApplyForOrderPage() {
     const profile = await FetchUserProfile();
     if (profile) {
@@ -1665,23 +1680,185 @@ async function SetupApplyForOrderPage() {
         document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
     }
 
-    document.getElementById('applicationForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await SubmitApplication();
+    const form = document.getElementById('applicationForm');
+    const steps = document.querySelectorAll('.step');
+    const progressBar = document.querySelector('.progress-bar');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const addAvailabilityBtn = document.getElementById('addAvailabilityBtn');
+    const backBtn = document.getElementById('back-btn');
+
+    let currentStep = 0;
+
+    function showStep(step) {
+        steps.forEach((s, index) => {
+            s.classList.toggle('active', index === step);
+        });
+        updateProgressBar();
+        updateButtons();
+    
+        if (step === steps.length - 1) {
+            updatePreview();
+        }
+    }
+
+    function updateProgressBar() {
+        const progress = ((currentStep + 1) / steps.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', progress);
+    }
+
+    function updateButtons() {
+        prevBtn.style.display = currentStep > 0 ? 'block' : 'none';
+        nextBtn.style.display = currentStep < steps.length - 1 ? 'block' : 'none';
+        submitBtn.style.display = currentStep === steps.length - 1 ? 'block' : 'none';
+    }
+
+    function validateStep(step) {
+        switch(step) {
+            case 1: // Availability
+                return ValidateAvailability();
+            case 2: // Estimated Completion
+                return document.getElementById('estimatedCompletion').value !== '';
+            case 3: // Self-Introduction
+                return document.getElementById('introduction').value.length > 0;
+            default:
+                return true;
+        }
+    }
+
+    nextBtn.addEventListener('click', function() {
+        if (validateStep(currentStep)) {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                showStep(currentStep);
+                saveProgress();
+            }
+        } else {
+            ShowErrorMessage('모든 필수 항목을 작성해주세요.');
+        }
     });
 
-    document.getElementById('addAvailabilityBtn').addEventListener('click', AddAvailabilitySlot);
+    prevBtn.addEventListener('click', function() {
+        if (currentStep > 0) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+
+    addAvailabilityBtn.addEventListener('click', AddAvailabilitySlot);
+
+    backBtn.addEventListener('click', () => FillTheBody('home'));
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (validateAllSteps()) {
+            await SubmitApplication();
+        } else {
+            ShowErrorMessage('모든 필수 항목을 작성해주세요.');
+        }
+    });
+
+    function loadProgress() {
+        const savedData = localStorage.getItem('applicationFormData');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const input = form.elements[key];
+                if (input) {
+                    input.value = data[key];
+                }
+            });
+            currentStep = data.currentStep || 0;
+            if (data.availability) {
+                data.availability.forEach(AddAvailabilitySlot);
+            }
+            showStep(currentStep);
+        }
+    }
+
+    function validateAllSteps() {
+        for (let i = 0; i < steps.length - 1; i++) {
+            if (!validateStep(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Initialize the form
+    loadProgress();
+    showStep(currentStep);
+
+    // Add autosave on input changes
+    form.addEventListener('input', saveProgress);
+}
+
+function saveProgress() {
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    data.currentStep = currentStep;
+    data.availability = getAvailabilityData();
+    localStorage.setItem('applicationFormData', JSON.stringify(data));
+}
+
+function EditSection(sectionId) {
+    const steps = document.querySelectorAll('.step');
+    const targetStep = Array.from(steps).findIndex(step => step.id === sectionId);
+    if (targetStep !== -1) {
+        currentStep = targetStep;
+        showStep(currentStep);
+    }
+}
+
+function getAvailabilityData() {
+    return Array.from(document.querySelectorAll('.availability-slot')).map(slot => ({
+        date: slot.querySelector('.availability-date').value,
+        time: slot.querySelector('.availability-time').value
+    }));
+}
+
+function updatePreview() {
+    const previewContent = document.getElementById('previewContent');
+    previewContent.innerHTML = `
+        <div class="mb-4">
+            <h3>기본 정보 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step1')">수정</button></h3>
+            <p><strong>이름:</strong> ${document.getElementById('applicantName').value}</p>
+            <p><strong>지역:</strong> ${document.getElementById('location').value}</p>
+        </div>
+        <div class="mb-4">
+            <h3>작업 가능 일정 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step2')">수정</button></h3>
+            <ul>
+                ${getAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
+            </ul>
+        </div>
+        <div class="mb-4">
+            <h3>예상 완료 시간 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step3')">수정</button></h3>
+            <p>${document.getElementById('estimatedCompletion').value} 시간</p>
+        </div>
+        <div class="mb-4">
+            <h3>자기 소개 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step4')">수정</button></h3>
+            <p>${document.getElementById('introduction').value}</p>
+        </div>
+        <div class="mb-4">
+            <h3>장비 및 질문 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step5')">수정</button></h3>
+            <p><strong>보유 장비:</strong> ${document.getElementById('resources').value}</p>
+            <p><strong>질문 사항:</strong> ${document.getElementById('questions').value}</p>
+        </div>
+    `;
 }
 
 async function SubmitApplication() {
     if (!await CheckProfileCompleteness()) {
-        ShowErrorMessage('오더를 등록하려면 프로필을 완성해야 합니다.');
+        ShowErrorMessage('오더를 지원하려면 프로필을 완성해야 합니다.');
         await FillTheBody('my-profile');
         ShowIncompleteProfileWarning();
         return;
     }
 
     if (!ValidateAvailability()) {
+        ShowErrorMessage('최소 하나의 작업 가능 일정을 추가해주세요.');
         return;
     }
 
@@ -1716,10 +1893,11 @@ async function SubmitApplication() {
         const result = await response.json();
 
         if (response.ok) {
-            alert('지원이 성공적으로 제출되었습니다.');
+            ShowErrorMessage('지원이 성공적으로 제출되었습니다.', 3000);
+            localStorage.removeItem('applicationFormData'); // Clear saved form data
             await FillTheBody('home');
         } else if (response.status === 400 && result.message === 'You have already applied to this order.') {
-            alert('이미 이 오더에 지원하셨습니다.');
+            ShowErrorMessage('이미 이 오더에 지원하셨습니다.');
             await FillTheBody('home');
         } else {
             throw new Error(result.error || result.message || '지원 제출에 실패했습니다.');
@@ -1738,10 +1916,10 @@ function AddAvailabilitySlot() {
     const slotHtml = `
         <div class="availability-slot mb-2">
             <div class="row">
-                <div class="col-md-4 mb-2">
+                <div class="col-md-5 mb-2">
                     <input type="date" class="form-control availability-date" required>
                 </div>
-                <div class="col-md-6 mb-2">
+                <div class="col-md-5 mb-2">
                     <select class="form-select availability-time" required>
                         <option value="">시간대 선택</option>
                         <option value="morning">오전</option>
@@ -1750,24 +1928,20 @@ function AddAvailabilitySlot() {
                     </select>
                 </div>
                 <div class="col-md-2 mb-2">
-                    <button type="button" class="btn btn-danger btn-sm remove-slot" ${slotIndex === 0 ? 'style="display:none;"' : ''}>삭제</button>
+                    <button type="button" class="btn btn-danger btn-sm remove-slot">삭제</button>
                 </div>
             </div>
         </div>
     `;
     container.insertAdjacentHTML('beforeend', slotHtml);
 
-    // Add event listener for remove button
     const removeBtn = container.lastElementChild.querySelector('.remove-slot');
-    removeBtn.onclick = function() {
-        if (container.children.length > 1) {
-            this.closest('.availability-slot').remove();
-        }
-        // Show all remove buttons if there's more than one slot
-        if (container.children.length === 1) {
-            container.querySelector('.remove-slot').style.display = 'none';
-        }
-    };
+    removeBtn.addEventListener('click', function() {
+        this.closest('.availability-slot').remove();
+        saveProgress();
+    });
+
+    saveProgress();
 }
 
 function ValidateAvailability() {
