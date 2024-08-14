@@ -2,83 +2,52 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export async function Start()
 {
-    console.time('Start-function');
-    console.log('Start function called');
+    if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
+    {
+        Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
 
-    if (navigator.userAgent.indexOf('KAKAO') >= 0) {
-        console.log('Running in KakaoTalk browser, redirecting...');
-        location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location);
-        return;
-    }
 
-    // Perform version check
-    // try {
-    //     const updateRequired = await CheckForUpdates();
-    //     if (updateRequired) {
-    //         console.log('Update required. Reloading app...');
-    //         await clearAppCache();
-    //         window.location.reload(true);
-    //         return;
-    //     }
-    // } catch (error) {
-    //     console.error('Error checking for updates:', error);
-    // }
 
-    try {
-        // Initialize Kakao SDK
-        if (!Kakao.isInitialized()) {
-            Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
+
+        // Check if this is a Kakao callback
+        if (window.location.pathname === '/oauth/callback') {
+            console.log('Detected OAuth callback, handling Kakao login');
+            await LoginByKakao();
+            return;
         }
-        console.log('Kakao SDK initialized');
-    } catch (error) {
-        console.error('Error initializing Kakao SDK:', error);
-    }
-
-    // Check if this is a Kakao callback
-    if (window.location.pathname === '/oauth/callback') {
-        console.log('Detected OAuth callback, handling Kakao login');
-        await LoginByKakao();
-        return;
-    }
-
-    // check if notification not granted: the permission cannot be denied I think it's a bug
-    if (Notification.permission != 'granted') {
-        FillTheBody('notification');
-        console.log('Notification permission not granted, showing notification page');
-        return;
-    }
-
-    // Check if user is logged in
-    if (localStorage.getItem('user') !== null && localStorage.getItem('tokens') !== null) {
-        const isProfileComplete = await CheckProfileCompleteness();
-        if (!isProfileComplete) {
-            await FillTheBody('my-profile');
-            ShowIncompleteProfileWarning();
+    
+        // check if notification not granted: the permission cannot be denied I think it's a bug
+        if (Notification.permission != 'granted') {
+            FillTheBody('notification');
+            console.log('Notification permission not granted, showing notification page');
+            return;
+        }
+    
+        // Check if user is logged in
+        if (localStorage.getItem('user') !== null && localStorage.getItem('tokens') !== null) {
+            const isProfileComplete = await CheckProfileCompleteness();
+            if (!isProfileComplete) {
+                await FillTheBody('my-profile');
+                ShowIncompleteProfileWarning();
+            } else {
+                await FillTheBody('home');
+            }
+            history.pushState(null, '', '/');
         } else {
-            await FillTheBody('home');
+            await FillTheBody('login');
         }
-        history.pushState(null, '', '/');
-    } else {
-        await FillTheBody('login');
-    }
-    console.timeEnd('Start-function');
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Check if running in KakaoTalk browser
-// if (navigator.userAgent.indexOf('KAKAO') >= 0) {
-//     console.log('Running in KakaoTalk browser, redirecting...');
-//     // Redirect to external browser
-//     window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(window.location.href);
-//     return; // Stop further execution
-// }
 
-// // Check if not running as PWA
-// if (!window.matchMedia('(display-mode: standalone)').matches) {
-//     console.log('Not running as PWA, showing landing page');
-//     await FillTheBody('landing');
-//     return; // Stop further execution
-// }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    }
+    else
+    {
+        // kakao browser: exit
+        if (navigator.userAgent.indexOf('KAKAO') >= 0) {location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location); return;}
+
+        await FillTheBody('landing');
+    }
+}
 
 // Imports
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -673,7 +642,6 @@ async function FetchAndDisplayOrderPosts(page = 1) {
         const result = await response.json();
         console.timeEnd('ParseJSONResponse');
         const orderPosts = result.orders;
-        console.log('Fetched order posts:', orderPosts);
         console.log('Fetched order posts:', orderPosts);
         const totalPages = result.totalPages || 1;
 
