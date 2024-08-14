@@ -7,8 +7,13 @@ export async function Start()
         // check if notification not granted: the permission cannot be denied I think it's a bug
         if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
 
+        // init kakao sdk
+        Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
+        
+        if (window.location.pathname === '/oauth/callback') {await LoginByKakao(); return;}
+
         // check if not configured
-        if (localStorage.getItem('user') == null)
+        if (localStorage.getItem('user') == null || localStorage.getItem('tokens') == null)
         {
             await FillTheBody('login');
             return;
@@ -17,10 +22,6 @@ export async function Start()
         {
             if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;}
         }
-
-        // init app
-        Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
-        if (window.location.pathname === '/oauth/callback') {await LoginByKakao(); return;}
 
         // Show home
         await FillTheBody('home');
