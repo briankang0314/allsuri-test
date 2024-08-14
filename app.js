@@ -151,12 +151,6 @@ const postsPerPage = 10;
 
 let currentOrderId = null;
 
-const timeTranslations = {
-    'morning': '오전',
-    'afternoon': '오후',
-    'evening': '저녁'
-};
-
 
 
 
@@ -1857,7 +1851,6 @@ async function SetupApplyForOrderPage() {
             category: ta.dataset.category,
             text: ta.value
         }));
-        const translatedTime = timeTranslations[slot.time] || slot.time;
 
         previewContent.innerHTML = `
             <div class="mb-4">
@@ -1868,7 +1861,7 @@ async function SetupApplyForOrderPage() {
             <div class="mb-4">
                 <h3>작업 가능 일정 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button></h3>
                 <ul>
-                    ${GetAvailabilityData().map(slot => `<li>${slot.date} ${translatedTime}</li>`).join('')}
+                    ${GetAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
                 </ul>
             </div>
             <div class="mb-4">
@@ -2187,6 +2180,12 @@ function DisplayApplicationList(applications, orderStatus) {
 
 function ShowApplicationDetails(application) {
     // console.log('Showing details for application:', application);
+    
+    const timeTranslations = {
+        'morning': '오전',
+        'afternoon': '오후',
+        'evening': '저녁'
+    };
 
     const modalBody = document.getElementById('applicationDetailsModalBody');
     if (!modalBody) {
