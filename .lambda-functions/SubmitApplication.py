@@ -86,22 +86,21 @@ def send_push_notification(user_id, title, body):
     logger.info(f"Notification body: {body}")
     try:
         user = get_user(user_id)
-        if not user or 'access_token' not in user:
-            logger.error(f"Failed to send push notification: No access token for user {user_id}")
+        if not user or 'device_token' not in user:
+            logger.error(f"Failed to send push notification: No device token for user {user_id}")
             return
-        access_token = user['access_token']
+        device_token = user['device_token']
         notification_data = {
-            'user_id': user_id,
             'title': title,
-            'body': body
+            'body': body,
+            'device_token': device_token
         }
         headers = {
-            'Authorization': f"Bearer {access_token}",
+            'Authorization': f"Bearer {user['access_token']}",
             'Content-Type': 'application/json'
         }
         url = 'https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/SendPush'
         
-        # Log full request details
         logger.info("Full request details:")
         logger.info(f"URL: {url}")
         logger.info(f"Method: POST")
@@ -133,7 +132,6 @@ def create_application(user_id, application_data):
             'application_id': application_id,
             'order_id': application_data['order_id'],
             'applicant_id': user_id,
-            'years_of_experience': application_data['years_of_experience'],
             'availability': application_data['availability'],
             'estimated_completion': application_data['estimated_completion'],
             'introduction': application_data['introduction'],

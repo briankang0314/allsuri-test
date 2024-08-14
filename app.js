@@ -1658,64 +1658,6 @@ async function SetupPostOrderPage() {
 
 // Application Management
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function OpenApplicationForm() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) {
-        alert('로그인이 필요합니다.');
-        return;
-    }
-
-    try {
-         // Show loading indicator
-
-        // Fetch user profile
-        const profile = await FetchUserProfile();
-
-        // Populate form with user data and make fields read-only
-        document.getElementById('applicantName').value = profile.nickname || '';
-        document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
-
-        // Clear and initialize other fields
-        document.getElementById('yearsOfExperience').value = '';
-        document.getElementById('estimatedCompletion').value = '';
-        document.getElementById('introduction').value = '';
-        document.getElementById('resources').value = '';
-        document.getElementById('questions').value = '';
-
-        // Initialize availability container
-        const availabilityContainer = document.getElementById('availabilityContainer');
-        availabilityContainer.innerHTML = '';
-        AddAvailabilitySlot();
-
-        // Close order details modal
-        const orderDetailsModal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
-        if (orderDetailsModal) {
-            orderDetailsModal.hide();
-        }
-
-        // Show application form modal
-        const applicationFormModal = new bootstrap.Modal(document.getElementById('applicationFormModal'));
-        applicationFormModal.show();
-
-        // Add event listener for submit button
-        const submitApplicationBtn = document.getElementById('submitApplicationBtn');
-        if (submitApplicationBtn) {
-            submitApplicationBtn.onclick = SubmitApplication;
-        }
-
-        // Add event listener for add availability button
-        const addAvailabilityBtn = document.getElementById('addAvailabilityBtn');
-        if (addAvailabilityBtn) {
-            addAvailabilityBtn.onclick = AddAvailabilitySlot;
-        }
-    } catch (error) {
-        console.error('Error opening application form:', error);
-        alert('지원 양식을 열 수 없습니다. 다시 시도해 주세요.');
-    } finally {
-         // Hide loading indicator
-    }
-}
-
 async function SetupApplyForOrderPage() {
     const profile = await FetchUserProfile();
     if (profile) {
@@ -1753,7 +1695,6 @@ async function SubmitApplication() {
     const applicationData = {
         order_id: currentOrderId,
         applicant_id: JSON.parse(localStorage.getItem('user')).user_id,
-        years_of_experience: parseInt(document.getElementById('yearsOfExperience').value),
         availability: availability,
         estimated_completion: parseInt(document.getElementById('estimatedCompletion').value) || 1,
         introduction: document.getElementById('introduction').value,
@@ -1790,67 +1731,6 @@ async function SubmitApplication() {
         HideLoading();
     }
 }
-
-// async function SubmitApplication() {
-//     if (!await CheckProfileCompleteness()) {
-//         ShowErrorMessage('오더를 등록하려면 프로필을 완성해야 합니다.');
-//         await FillTheBody('my-profile');
-//         ShowIncompleteProfileWarning();
-//         return;
-//     }
-
-//     if (!ValidateAvailability()) {
-//         return; // Stop submission if validation fails
-//     }
-
-//     const availabilitySlots = document.querySelectorAll('.availability-slot');
-//     const availability = Array.from(availabilitySlots).map(slot => {
-//         const date = slot.querySelector('.availability-date').value;
-//         const time = slot.querySelector('.availability-time').value;
-//         return { date, time };
-//     });
-
-//     const applicationData = {
-//         order_id: currentOrderId,
-//         applicant_id: JSON.parse(localStorage.getItem('user')).user_id,
-//         years_of_experience: parseInt(document.getElementById('yearsOfExperience').value),
-//         availability: availability,
-//         estimated_completion: parseInt(document.getElementById('estimatedCompletion').value) || 1,
-//         introduction: document.getElementById('introduction').value,
-//         resources: document.getElementById('resources').value,
-//         questions: document.getElementById('questions').value
-//     };
-
-//     try {
-//          // Show loading indicator
-
-//         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/SubmitApplication', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify(applicationData)
-//         });
-
-//         const result = await response.json();
-
-//         if (response.ok) {
-//             alert('지원이 성공적으로 제출되었습니다.');
-//             CloseAllModals();
-//             await FetchAndDisplayOrderPosts(currentPage);
-//         } else if (response.status === 400 && result.message === 'You have already applied to this order.') {
-//             alert('이미 이 오더에 지원하셨습니다.');
-//             CloseAllModals();
-//         } else {
-//             throw new Error(result.error || result.message || '지원 제출에 실패했습니다.');
-//         }
-//     } catch (error) {
-//         console.error('Error submitting application:', error);
-//         alert('지원 제출 중 오류가 발생했습니다. 다시 시도해 주세요.');
-//     } finally {
-//          // Hide loading indicator
-//     }
-// }
 
 function AddAvailabilitySlot() {
     const container = document.getElementById('availabilityContainer');
@@ -2008,7 +1888,6 @@ function DisplayApplicationList(applications, orderStatus) {
         applicationElement.setAttribute('data-application-id', application.application_id);
         applicationElement.innerHTML = `
             <h5>${application.applicant_name || '이름 없음'}</h5>
-            <p>경력: ${application.years_of_experience} 년</p>
             <p>예상 완료 시간: ${application.estimated_completion} 시간</p>
             <p>상태: <span class="badge ${application.status === 'rejected' ? 'bg-danger' : 'bg-secondary'} application-status">${application.status === 'rejected' ? '거절됨' : '대기중'}</span></p>
             <button class="btn btn-primary btn-sm view-application">상세 보기</button>
@@ -2060,7 +1939,6 @@ function ShowApplicationDetails(application) {
 
     modalBody.innerHTML = `
         <h5>지원자: ${application.applicant_name}</h5>
-        <p><strong>경력:</strong> ${application.years_of_experience}년</p>
         <p><strong>예상 완료 시간:</strong> ${application.estimated_completion}시간</p>
         <p><strong>소개:</strong> ${application.introduction}</p>
         <p><strong>보유 장비:</strong> ${application.resources}</p>
