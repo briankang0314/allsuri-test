@@ -1661,135 +1661,172 @@ async function SetupPostOrderPage() {
 async function SetupApplyForOrderPage() {
     const profile = await FetchUserProfile();
     if (profile) {
-        FillProfileInfo(profile);
+        document.getElementById('applicantName').value = profile.nickname || '';
+        document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
     }
 
-    const elements = GetPageElements();
+    const form = document.getElementById('applicationForm');
+    const steps = document.querySelectorAll('.step');
+    const progressBar = document.querySelector('.progress-bar');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const addAvailabilityBtn = document.getElementById('addAvailabilityBtn');
+    const backBtn = document.getElementById('back-btn');
+
     let currentStep = 0;
 
-    InitializeEventListeners(elements);
-    LoadProgress();
-    ShowStep(currentStep, elements);
-}
-
-// Helper functions
-function FillProfileInfo(profile) {
-    document.getElementById('applicantName').value = profile.nickname || '';
-    document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
-}
-
-function GetPageElements() {
-    return {
-        form: document.getElementById('applicationForm'),
-        steps: document.querySelectorAll('.step'),
-        progressBar: document.querySelector('.progress-bar'),
-        prevBtn: document.getElementById('prevBtn'),
-        nextBtn: document.getElementById('nextBtn'),
-        submitBtn: document.getElementById('submitBtn'),
-        addAvailabilityBtn: document.getElementById('addAvailabilityBtn'),
-        backBtn: document.getElementById('back-btn')
-    };
-}
-
-function InitializeEventListeners(elements) {
-    elements.nextBtn.addEventListener('click', () => HandleNextStep(elements));
-    elements.prevBtn.addEventListener('click', () => HandlePrevStep(elements));
-    elements.addAvailabilityBtn.addEventListener('click', AddAvailabilitySlot);
-    elements.backBtn.addEventListener('click', () => FillTheBody('home'));
-    elements.form.addEventListener('submit', HandleFormSubmit);
-    elements.form.addEventListener('input', SaveProgress);
-}
-
-function LoadProgress() {
-    const savedData = localStorage.getItem('applicationFormData');
-    if (savedData) {
-        const data = JSON.parse(savedData);
-        Object.keys(data).forEach(key => {
-            const input = form.elements[key];
-            if (input) {
-                input.value = data[key];
-            }
+    function showStep(step) {
+        steps.forEach((s, index) => {
+            s.classList.toggle('active', index === step);
         });
-        currentStep = data.currentStep || 0;
-        if (data.availability) {
-            data.availability.forEach(AddAvailabilitySlot);
-        }
-        ShowStep(currentStep);
-    }
-}
-
-function ValidateStep(step) {
-    switch(step) {
-        case 1: // Availability
-            return ValidateAvailability();
-        case 2: // Estimated Completion
-            return document.getElementById('estimatedCompletion').value !== '';
-        case 3: // Self-Introduction
-            return document.getElementById('introduction').value.length > 0;
-        default:
-            return true;
-    }
-}
-
-function HandleNextStep(elements) {
-    if (ValidateStep(currentStep)) {
-        if (currentStep < elements.steps.length - 1) {
-            currentStep++;
-            ShowStep(currentStep, elements);
-            SaveProgress();
-        }
-    } else {
-        ShowErrorMessage('모든 필수 항목을 작성해주세요.');
-    }
-}
-
-function HandlePrevStep(elements) {
-    if (currentStep > 0) {
-        currentStep--;
-        ShowStep(currentStep, elements);
-    }
-}
-
-async function HandleFormSubmit(e) {
-    e.preventDefault();
-    if (ValidateAllSteps()) {
-        await SubmitApplication();
-    } else {
-        ShowErrorMessage('모든 필수 항목을 작성해주세요.');
-    }
-}
-
-function ValidateAllSteps() {
-    for (let i = 0; i < steps.length - 1; i++) {
-        if (!ValidateStep(i)) {
-            return false;
+        updateProgressBar();
+        updateButtons();
+    
+        if (step === steps.length - 1) {
+            updatePreview();
         }
     }
-    return true;
-}
 
-function ShowStep(step, elements) {
-    elements.steps.forEach((s, index) => {
-        s.classList.toggle('active', index === step);
+    function updateProgressBar() {
+        const progress = ((currentStep + 1) / steps.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', progress);
+    }
+
+    function updateButtons() {
+        prevBtn.style.display = currentStep > 0 ? 'block' : 'none';
+        nextBtn.style.display = currentStep < steps.length - 1 ? 'block' : 'none';
+        submitBtn.style.display = currentStep === steps.length - 1 ? 'block' : 'none';
+    }
+
+    function validateStep(step) {
+        switch(step) {
+            case 1: // Availability
+                return ValidateAvailability();
+            case 2: // Estimated Completion
+                return document.getElementById('estimatedCompletion').value !== '';
+            case 3: // Self-Introduction
+                return document.getElementById('introduction').value.length > 0;
+            default:
+                return true;
+        }
+    }
+
+    nextBtn.addEventListener('click', function() {
+        if (validateStep(currentStep)) {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                showStep(currentStep);
+                SaveProgress();
+            }
+        } else {
+            ShowErrorMessage('모든 필수 항목을 작성해주세요.');
+        }
     });
-    UpdateProgressBar(step, elements);
-    UpdateButtons(step, elements);
 
-    if (step === elements.steps.length - 1) {
-        UpdatePreview();
+    prevBtn.addEventListener('click', function() {
+        if (currentStep > 0) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+
+    addAvailabilityBtn.addEventListener('click', AddAvailabilitySlot);
+
+    backBtn.addEventListener('click', () => FillTheBody('home'));
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (validateAllSteps()) {
+            await SubmitApplication();
+        } else {
+            ShowErrorMessage('모든 필수 항목을 작성해주세요.');
+        }
+    });
+
+    function loadProgress() {
+        const savedData = localStorage.getItem('applicationFormData');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const input = form.elements[key];
+                if (input) {
+                    input.value = data[key];
+                }
+            });
+            currentStep = data.currentStep || 0;
+            if (data.availability) {
+                data.availability.forEach(AddAvailabilitySlot);
+            }
+            showStep(currentStep);
+        }
     }
-}
 
-function UpdateProgressBar(step, elements) {
-    const progress = ((step + 1) / elements.steps.length) * 100;
-    elements.progressBar.style.width = `${progress}%`;
-    elements.progressBar.setAttribute('aria-valuenow', progress);
-}
+    function validateAllSteps() {
+        for (let i = 0; i < steps.length - 1; i++) {
+            if (!validateStep(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-function UpdateButtons(step, elements) {
-    elements.prevBtn.style.display = step > 0 ? 'block' : 'none';
-    elements.nextBtn.style.display = step < elements.steps.length - 1 ? 'block' : 'none';
-    elements.submitBtn.style.display = step === elements.steps.length - 1 ? 'block' : 'none';
+    function editSection(sectionId) {
+        const steps = document.querySelectorAll('.step');
+        const targetStep = Array.from(steps).findIndex(step => step.id === sectionId);
+        if (targetStep !== -1) {
+            currentStep = targetStep;
+            showStep(currentStep);
+        }
+    }
+
+    function updatePreview() {
+        const previewContent = document.getElementById('previewContent');
+        previewContent.innerHTML = `
+            <div class="mb-4">
+                <h3>기본 정보 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step1">수정</button></h3>
+                <p><strong>이름:</strong> ${document.getElementById('applicantName').value}</p>
+                <p><strong>지역:</strong> ${document.getElementById('location').value}</p>
+            </div>
+            <div class="mb-4">
+                <h3>작업 가능 일정 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button></h3>
+                <ul>
+                    ${GetAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
+                </ul>
+            </div>
+            <div class="mb-4">
+                <h3>예상 완료 시간 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button></h3>
+                <p>${document.getElementById('estimatedCompletion').value} 시간</p>
+            </div>
+            <div class="mb-4">
+                <h3>자기 소개 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button></h3>
+                <p>${document.getElementById('introduction').value}</p>
+            </div>
+            <div class="mb-4">
+                <h3>장비 및 질문 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button></h3>
+                <p><strong>보유 장비:</strong> ${document.getElementById('resources').value}</p>
+                <p><strong>질문 사항:</strong> ${document.getElementById('questions').value}</p>
+            </div>
+        `;
+    
+        // Add event listeners to all edit buttons
+        const editButtons = previewContent.querySelectorAll('.edit-section');
+        editButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionId = this.getAttribute('data-section');
+                editSection(sectionId);
+            });
+        });
+    }
+
+    // Initialize the form
+    loadProgress();
+    showStep(currentStep);
+
+    // Add autosave on input changes
+    form.addEventListener('input', SaveProgress);
 }
 
 function SaveProgress() {
@@ -1869,56 +1906,6 @@ function GetAvailabilityData() {
         time: slot.querySelector('.availability-time').value
     }));
 }
-
-function EditSection(sectionId) {
-    const steps = document.querySelectorAll('.step');
-    const targetStep = Array.from(steps).findIndex(step => step.id === sectionId);
-    if (targetStep !== -1) {
-        currentStep = targetStep;
-        ShowStep(currentStep);
-    }
-}
-
-function UpdatePreview() {
-    const previewContent = document.getElementById('previewContent');
-    previewContent.innerHTML = `
-        <div class="mb-4">
-            <h3>기본 정보 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step1">수정</button></h3>
-            <p><strong>이름:</strong> ${document.getElementById('applicantName').value}</p>
-            <p><strong>지역:</strong> ${document.getElementById('location').value}</p>
-        </div>
-        <div class="mb-4">
-            <h3>작업 가능 일정 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button></h3>
-            <ul>
-                ${GetAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
-            </ul>
-        </div>
-        <div class="mb-4">
-            <h3>예상 완료 시간 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button></h3>
-            <p>${document.getElementById('estimatedCompletion').value} 시간</p>
-        </div>
-        <div class="mb-4">
-            <h3>자기 소개 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button></h3>
-            <p>${document.getElementById('introduction').value}</p>
-        </div>
-        <div class="mb-4">
-            <h3>장비 및 질문 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button></h3>
-            <p><strong>보유 장비:</strong> ${document.getElementById('resources').value}</p>
-            <p><strong>질문 사항:</strong> ${document.getElementById('questions').value}</p>
-        </div>
-    `;
-
-    // Add event listeners to all edit buttons
-    const editButtons = previewContent.querySelectorAll('.edit-section');
-    editButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const sectionId = this.getAttribute('data-section');
-            EditSection(sectionId);
-        });
-    });
-}
-
 
 async function SubmitApplication() {
     if (!await CheckProfileCompleteness()) {
