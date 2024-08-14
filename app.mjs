@@ -1,99 +1,7 @@
-// Global Variables
+// Exppoerted functions: Start
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-console.time('app-initialization');
-const regions = [
-    { id: 1, name: '서울' }, { id: 2, name: '인천' }, { id: 3, name: '경기' },
-    { id: 4, name: '부산' }, { id: 5, name: '대구' }, { id: 6, name: '광주' },
-    { id: 7, name: '대전' }, { id: 8, name: '울산' }, { id: 9, name: '세종' },
-    { id: 10, name: '강원' }, { id: 11, name: '충북' }, { id: 12, name: '충남' },
-    { id: 13, name: '전북' }, { id: 14, name: '전남' }, { id: 15, name: '경북' },
-    { id: 16, name: '경남' }, { id: 17, name: '제주' }
-];
-
-const cities = {
-    1: ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'],
-    2: ['강화군', '계양구', '남동구', '중구', '동구', '미추홀구', '부평구', '서구', '연수구', '옹진군'],
-    3: ['가평군', '고양시', '과천시', '광명시', '광주시', '구리시', '군포시', '김포시', '남양주시', '동두천시', '부천시', '성남시', '수원시', '시흥시', '안산시', '안성시', '안양시', '양주시', '양평군', '여주시', '연천군', '오산시', '용인시', '의왕시', '의정부시', '이천시', '파주시', '평택시', '포천시', '하남시', '화성시'],
-    4: ['강서구', '금정구', '기장군', '남구', '동구', '동래구', '부산진구', '북구', '사상구', '사하구', '서구', '수영구', '연제구', '영도구', '중구', '해운대구'],
-    5: ['남구', '달서구', '달성군', '동구', '북구', '서구', '수성구', '중구', '군위군'],
-    6: ['광산구', '남구', '동구', '북구', '서구'],
-    7: ['동구', '중구', '서구', '유성구', '대덕구'],
-    8: ['남구', '동구', '북구', '울주군', '중구'],
-    9: [], // 세종특별자치시는 구/군 구분이 없습니다.
-    10: ['강릉시', '고성군', '동해시', '삼척시', '속초시', '양구군', '양양군', '영월군', '원주시', '인제군', '정선군', '철원군', '춘천시', '태백시', '평창군', '홍천군', '화천군', '횡성군'],
-    11: ['제천시', '청주시', '충주시', '진천군', '음성군', '단양군', '증평군', '괴산군', '옥천군', '영동군', '보은군'],
-    12: ['천안시', '공주시', '보령시', '아산시', '서산시', '논산시', '계룡시', '당진시', '금산군', '부여군', '서천군', '청양군', '홍성군', '예산군', '태안군'],
-    13: ['전주시', '군산시', '익산시', '정읍시', '남원시', '김제시', '완주군', '진안군', '무주군', '장수군', '임실군', '순창군', '고창군', '부안군'],
-    14: ['목포시', '여수시', '순천시', '나주시', '광양시', '담양군', '곡성군', '구례군', '고흥군', '보성군', '화순군', '장흥군', '강진군', '해남군', '영암군', '무안군', '함평군', '영광군', '장성군', '완도군', '진도군', '신안군'],
-    15: ['경산시', '경주시', '고령군', '구미시', '김천시', '문경시', '봉화군', '상주시', '성주군', '안동시', '영덕군', '영양군', '영주시', '영천시', '예천군', '울릉군', '울진군', '의성군', '청도군', '청송군', '칠곡군', '포항시'],
-    16: ['거제시', '거창군', '고성군', '김해시', '남해군', '마산시', '밀양시', '사천시', '산청군', '양산시', '의령군', '진주시', '창녕군', '창원시', '통영시', '하동군', '함안군', '함양군', '합천군'],
-    17: ['제주시', '서귀포시']
-};
-
-const allCategories = ['누수', '방수', '하수구', '리모델링', '동파/해빙', '수도설비', '기타'];
-
-let currentFilters = {
-    region: '',
-    city: '',
-    status: ''
-};
-let currentSort = 'created_at';
-
-let myOrdersCurrentFilters = {
-    region: '',
-    city: '',
-    status: ''
-};
-let myOrdersCurrentSort = 'created_at';
-
-let isLoading = false;
-
-const loadingIndicator = document.createElement('div');
-loadingIndicator.innerHTML = `
-  <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;">
-    <div style="background: white; padding: 20px; border-radius: 5px;">
-      <p>로딩중...</p>
-    </div>
-  </div>
-`;
-
-let currentPage = 1;
-const postsPerPage = 10;
-
-let currentOrderId = null;
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Check if running in KakaoTalk browser
-// if (navigator.userAgent.indexOf('KAKAO') >= 0) {
-//     console.log('Running in KakaoTalk browser, redirecting...');
-//     // Redirect to external browser
-//     window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(window.location.href);
-//     return; // Stop further execution
-// }
-
-// // Check if not running as PWA
-// if (!window.matchMedia('(display-mode: standalone)').matches) {
-//     console.log('Not running as PWA, showing landing page');
-//     await FillTheBody('landing');
-//     return; // Stop further execution
-// }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-console.timeEnd('app-initialization');
-// Initialization
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
-import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
-import { APP_VERSION } from './version.js';
-
-export async function Start() {
+export async function Start()
+{
     console.time('Start-function');
     console.log('Start function called');
 
@@ -155,55 +63,111 @@ export async function Start() {
     }
     console.timeEnd('Start-function');
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Check if running in KakaoTalk browser
+// if (navigator.userAgent.indexOf('KAKAO') >= 0) {
+//     console.log('Running in KakaoTalk browser, redirecting...');
+//     // Redirect to external browser
+//     window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(window.location.href);
+//     return; // Stop further execution
+// }
 
-async function CheckForUpdates() {
-    const currentVersion = APP_VERSION;
-    console.log('Checking for updates. Current version:', currentVersion);
+// // Check if not running as PWA
+// if (!window.matchMedia('(display-mode: standalone)').matches) {
+//     console.log('Not running as PWA, showing landing page');
+//     await FillTheBody('landing');
+//     return; // Stop further execution
+// }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    try {
-        const response = await fetch('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/CheckVersion', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ version: currentVersion })
-        });
+// Imports
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
+import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
 
-        if (!response.ok) {
-            throw new Error('Failed to check for updates');
-        }
+// Global Variables
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const regions = [
+    { id: 1, name: '서울' }, { id: 2, name: '인천' }, { id: 3, name: '경기' },
+    { id: 4, name: '부산' }, { id: 5, name: '대구' }, { id: 6, name: '광주' },
+    { id: 7, name: '대전' }, { id: 8, name: '울산' }, { id: 9, name: '세종' },
+    { id: 10, name: '강원' }, { id: 11, name: '충북' }, { id: 12, name: '충남' },
+    { id: 13, name: '전북' }, { id: 14, name: '전남' }, { id: 15, name: '경북' },
+    { id: 16, name: '경남' }, { id: 17, name: '제주' }
+];
 
-        const data = await response.json();
+const cities = {
+    1: ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'],
+    2: ['강화군', '계양구', '남동구', '중구', '동구', '미추홀구', '부평구', '서구', '연수구', '옹진군'],
+    3: ['가평군', '고양시', '과천시', '광명시', '광주시', '구리시', '군포시', '김포시', '남양주시', '동두천시', '부천시', '성남시', '수원시', '시흥시', '안산시', '안성시', '안양시', '양주시', '양평군', '여주시', '연천군', '오산시', '용인시', '의왕시', '의정부시', '이천시', '파주시', '평택시', '포천시', '하남시', '화성시'],
+    4: ['강서구', '금정구', '기장군', '남구', '동구', '동래구', '부산진구', '북구', '사상구', '사하구', '서구', '수영구', '연제구', '영도구', '중구', '해운대구'],
+    5: ['남구', '달서구', '달성군', '동구', '북구', '서구', '수성구', '중구', '군위군'],
+    6: ['광산구', '남구', '동구', '북구', '서구'],
+    7: ['동구', '중구', '서구', '유성구', '대덕구'],
+    8: ['남구', '동구', '북구', '울주군', '중구'],
+    9: [], // 세종특별자치시는 구/군 구분이 없습니다.
+    10: ['강릉시', '고성군', '동해시', '삼척시', '속초시', '양구군', '양양군', '영월군', '원주시', '인제군', '정선군', '철원군', '춘천시', '태백시', '평창군', '홍천군', '화천군', '횡성군'],
+    11: ['제천시', '청주시', '충주시', '진천군', '음성군', '단양군', '증평군', '괴산군', '옥천군', '영동군', '보은군'],
+    12: ['천안시', '공주시', '보령시', '아산시', '서산시', '논산시', '계룡시', '당진시', '금산군', '부여군', '서천군', '청양군', '홍성군', '예산군', '태안군'],
+    13: ['전주시', '군산시', '익산시', '정읍시', '남원시', '김제시', '완주군', '진안군', '무주군', '장수군', '임실군', '순창군', '고창군', '부안군'],
+    14: ['목포시', '여수시', '순천시', '나주시', '광양시', '담양군', '곡성군', '구례군', '고흥군', '보성군', '화순군', '장흥군', '강진군', '해남군', '영암군', '무안군', '함평군', '영광군', '장성군', '완도군', '진도군', '신안군'],
+    15: ['경산시', '경주시', '고령군', '구미시', '김천시', '문경시', '봉화군', '상주시', '성주군', '안동시', '영덕군', '영양군', '영주시', '영천시', '예천군', '울릉군', '울진군', '의성군', '청도군', '청송군', '칠곡군', '포항시'],
+    16: ['거제시', '거창군', '고성군', '김해시', '남해군', '마산시', '밀양시', '사천시', '산청군', '양산시', '의령군', '진주시', '창녕군', '창원시', '통영시', '하동군', '함안군', '함양군', '합천군'],
+    17: ['제주시', '서귀포시']
+};
 
-        if (data.requiresUpdate) {
-            console.log('Update required. New version:', data.latestVersion);
+const allCategories = ['누수', '방수', '하수구', '리모델링', '동파/해빙', '수도설비', '기타'];
 
-            if (data.actions.includes("signOut")) {
-                await Logout();
-            }
+let currentFilters = {
+    region: '',
+    city: '',
+    status: ''
+};
+let currentSort = 'created_at';
 
-            return true;
-        } else {
-            console.log('App is up to date.');
-            return false;
-        }
-    } catch (error) {
-        console.error('Error checking for updates:', error);
-        throw error;
-    }
-}
+let myOrdersCurrentFilters = {
+    region: '',
+    city: '',
+    status: ''
+};
+let myOrdersCurrentSort = 'created_at';
 
-async function clearAppCache() {
-    if ('caches' in window) {
-        try {
-            const cacheNames = await caches.keys();
-            await Promise.all(cacheNames.map(name => caches.delete(name)));
-            console.log('App cache cleared');
-        } catch (error) {
-            console.error('Failed to clear app cache:', error);
-        }
-    }
-}
+const loadingIndicator = document.createElement('div');
+loadingIndicator.innerHTML = `
+  <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+    <div style="background: white; padding: 20px; border-radius: 5px;">
+      <p>로딩중...</p>
+    </div>
+  </div>
+`;
+
+let currentPage = 1;
+const postsPerPage = 10;
+
+let currentOrderId = null;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Dynamic Content Loading
