@@ -1717,15 +1717,6 @@ async function OpenApplicationForm() {
 }
 
 async function SetupApplyForOrderPage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const orderId = urlParams.get('orderId');
-    
-    if (!orderId) {
-        ShowErrorMessage('오더 ID가 없습니다. 홈페이지로 돌아갑니다.');
-        window.location.href = 'index.html';
-        return;
-    }
-
     const profile = await FetchUserProfile();
     if (profile) {
         document.getElementById('applicantName').value = profile.nickname || '';
@@ -1734,7 +1725,7 @@ async function SetupApplyForOrderPage() {
 
     document.getElementById('applicationForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        await SubmitApplication(orderId);
+        await SubmitApplication();
     });
 
     document.getElementById('addAvailabilityBtn').addEventListener('click', AddAvailabilitySlot);
