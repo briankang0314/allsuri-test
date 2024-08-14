@@ -537,7 +537,6 @@ async function LoginByKakao() {
                 }
                 // Redirect to home page
                 await FillTheBody('home');
-                history.pushState(null, '', '/');
             } else {
                 console.error('Login failed:', data);
                 await FillTheBody('login');
@@ -1909,9 +1908,14 @@ async function FetchOrderStatus(orderId) {
 function DisplayApplicationList(applications, orderStatus) {
     const container = document.getElementById('applicationListContainer');
     container.innerHTML = '';
+
+    const rejectAllBtn = document.getElementById('rejectAllBtn');
     
     if (applications.length === 0) {
         container.innerHTML = '<p>아직 지원서가 없습니다.</p>';
+        if (rejectAllBtn) {
+            rejectAllBtn.style.display = 'none';
+        }
         return;
     }
     
@@ -1941,10 +1945,12 @@ function DisplayApplicationList(applications, orderStatus) {
     });
 
     // Add event listener for "Reject All" button
-    const rejectAllBtn = document.getElementById('rejectAllBtn');
     if (rejectAllBtn) {
-        rejectAllBtn.disabled = isOrderClosed || applications.every(app => app.status === 'rejected');
-        if (!isOrderClosed) {
+        if (isOrderClosed || applications.every(app => app.status === 'rejected')) {
+            rejectAllBtn.style.display = 'none';
+        } else {
+            rejectAllBtn.style.display = 'block';
+            rejectAllBtn.disabled = false;
             rejectAllBtn.addEventListener('click', RejectAllApplications);
         }
     }
