@@ -86,14 +86,51 @@ let myOrdersCurrentFilters = {
 };
 let myOrdersCurrentSort = 'created_at';
 
-const loadingIndicator = document.createElement('div');
-loadingIndicator.innerHTML = `
-  <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;">
-    <div style="background: white; padding: 20px; border-radius: 5px;">
-      <p>로딩중...</p>
-    </div>
+let isLoading = false;
+
+const loadingIndicatorHTML = `
+  <div class="loading-overlay">
+    <svg class="wrench-loader" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path class="wrench" d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+    </svg>
   </div>
 `;
+
+const loadingIndicatorCSS = `
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  .wrench-loader {
+    width: 100px;
+    height: 100px;
+  }
+
+  .wrench {
+    fill: #007bff;
+    transform-origin: center;
+    animation: wrench-rotate 2s infinite ease-in-out;
+  }
+
+  @keyframes wrench-rotate {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(90deg); }
+    50% { transform: rotate(180deg); }
+    75% { transform: rotate(270deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+let loadingIndicator;
 
 let currentPage = 1;
 const postsPerPage = 10;
@@ -601,7 +638,7 @@ function SetupHomePageEventListeners() {
 }
 
 async function FetchAndDisplayOrderPosts(page = 1) {
-    console.time('FetchAndDisplayOrderPosts');
+    ShowLoading();
     
     try {
         console.time('MakeAuthenticatedRequest-GetOrders');
@@ -639,7 +676,7 @@ async function FetchAndDisplayOrderPosts(page = 1) {
         console.error('Error fetching order posts:', error);
         ShowErrorMessage('오더를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        
+        HideLoading();
         console.timeEnd('FetchAndDisplayOrderPosts');
     }
 }
@@ -1200,6 +1237,7 @@ async function CheckProfileCompleteness() {
 // My Orders Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function FetchAndDisplayMyOrderPosts(page = 1) {
+    ShowLoading();
     
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrders', {
@@ -1232,7 +1270,7 @@ async function FetchAndDisplayMyOrderPosts(page = 1) {
         console.error('Error fetching my orders:', error);
         ShowErrorMessage('내 오더를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        
+        HideLoading();
     }
 }
 
@@ -2116,17 +2154,28 @@ function UpdateApplicationStatus(applicationId, status) {
 
 // Utility Functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function ShowLoading() {
-    isLoading = true;
-    document.body.appendChild(loadingIndicator);
-}
-
-function HideLoading() {
-    isLoading = false;
-    if (document.body.contains(loadingIndicator)) {
-        document.body.removeChild(loadingIndicator);
+function CreateLoadingIndicator() {
+    if (!loadingIndicator) {
+      loadingIndicator = document.createElement('div');
+      loadingIndicator.innerHTML = loadingIndicatorHTML;
+  
+      const style = document.createElement('style');
+      style.textContent = loadingIndicatorCSS;
+      document.head.appendChild(style);
     }
-}
+    return loadingIndicator;
+  }
+  
+  export function ShowLoading() {
+    const indicator = CreateLoadingIndicator();
+    document.body.appendChild(indicator);
+  }
+  
+  export function HideLoading() {
+    if (loadingIndicator && document.body.contains(loadingIndicator)) {
+      document.body.removeChild(loadingIndicator);
+    }
+  }
 
 function ShowErrorMessage(message, duration = 5000) {
     // Create error message container
