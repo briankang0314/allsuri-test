@@ -838,7 +838,7 @@ async function RefreshOrderPosts() {
     
     try {
         await FetchAndDisplayOrderPosts(1); // Fetch the first page of posts
-        ShowErrorMessage('오더 목록이 새로고침되었습니다.', 3000);
+        ShowSuccessMessage('오더 목록이 새로고침되었습니다.', 3000);
     } catch (error) {
         console.error('Error refreshing order posts:', error);
         ShowErrorMessage('오더 목록 새로고침 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -1217,7 +1217,7 @@ async function SaveProfileChanges() {
         console.log('Profile update result:', result);
 
         if (result.success) {
-            ShowErrorMessage('프로필이 성공적으로 업데이트되었습니다.', 3000);
+            ShowSuccessMessage('프로필이 성공적으로 업데이트되었습니다.', 3000);
 
             let user = JSON.parse(localStorage.getItem('user'));
             user = { ...user, ...updatedProfile };
@@ -1406,7 +1406,7 @@ async function RefreshMyOrderPosts() {
     
     try {
         await FetchAndDisplayMyOrderPosts(1); // Fetch the first page of my posts
-        ShowErrorMessage('내 오더 목록이 새로고침되었습니다.', 3000);
+        ShowSuccessMessage('내 오더 목록이 새로고침되었습니다.', 3000);
     } catch (error) {
         console.error('Error refreshing my order posts:', error);
         ShowErrorMessage('내 오더 목록 새로고침 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -1520,7 +1520,7 @@ async function DeleteOrder(orderId) {
             orderElement.remove();
         }
 
-        ShowErrorMessage('오더가 정상적으로 삭제됐습니다.', 3000);
+        ShowSuccessMessage('오더가 정상적으로 삭제됐습니다.', 3000);
     } catch (error) {
         console.error('Error deleting order:', error);
         ShowErrorMessage(error.message || '오더 삭제 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -1951,7 +1951,7 @@ async function SubmitApplication() {
         const result = await response.json();
 
         if (response.ok) {
-            ShowErrorMessage('지원이 성공적으로 제출되었습니다.', 3000);
+            ShowSuccessMessage('지원이 성공적으로 제출되었습니다.', 3000);
             localStorage.removeItem('applicationFormData'); // Clear saved form data
             await FillTheBody('home');
         } else if (response.status === 400 && result.message === 'You have already applied to this order.') {
@@ -2167,7 +2167,7 @@ async function AcceptApplication(applicationId) {
             throw new Error('Failed to accept application');
         }
 
-        ShowErrorMessage('지원서가 성공적으로 수락되었습니다.', 3000);
+        ShowSuccessMessage('지원서가 성공적으로 수락되었습니다.', 3000);
         
         // Disable all action buttons in the application list
         DisableApplicationActions();
@@ -2210,7 +2210,7 @@ async function RejectApplication(applicationId) {
             throw new Error('Failed to reject application');
         }
 
-        ShowErrorMessage('지원서가 성공적으로 거절되었습니다.', 3000);
+        ShowSuccessMessage('지원서가 성공적으로 거절되었습니다.', 3000);
         
         // Update the UI to reflect the rejected application
         UpdateApplicationStatus(applicationId, 'rejected');
@@ -2255,7 +2255,7 @@ async function RejectAllApplications() {
     //         throw new Error('Failed to reject all applications');
     //     }
 
-    //     ShowErrorMessage('모든 지원서가 성공적으로 거절되었습니다.', 3000);
+    //     ShowSuccessMessage('모든 지원서가 성공적으로 거절되었습니다.', 3000);
         
     //     // Refresh the applications list
     //     await FetchAndDisplayApplications(currentOrderId);
@@ -2337,15 +2337,23 @@ function CreateLoadingIndicator() {
     }
   }
 
-function ShowErrorMessage(message, duration = 5000) {
-    // Create error message container
-    const errorContainer = document.createElement('div');
-    errorContainer.style.cssText = `
+  function ShowErrorMessage(message, duration = 5000) {
+    showMessage(message, duration, '#ff6b6b');
+}
+
+function ShowSuccessMessage(message, duration = 5000) {
+    showMessage(message, duration, '#28a745');
+}
+
+function showMessage(message, duration, backgroundColor) {
+    // Create message container
+    const messageContainer = document.createElement('div');
+    messageContainer.style.cssText = `
         position: fixed;
         top: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background-color: #ff6b6b;
+        background-color: ${backgroundColor};
         color: white;
         padding: 10px 20px;
         border-radius: 5px;
@@ -2360,17 +2368,17 @@ function ShowErrorMessage(message, duration = 5000) {
     messageText.textContent = message;
 
     // Append message to container
-    errorContainer.appendChild(messageText);
+    messageContainer.appendChild(messageText);
 
     // Append container to body
-    document.body.appendChild(errorContainer);
+    document.body.appendChild(messageContainer);
 
-    // Set a timeout to remove the error message
+    // Set a timeout to remove the message
     setTimeout(() => {
-        errorContainer.style.opacity = '0';
+        messageContainer.style.opacity = '0';
         setTimeout(() => {
-            if (document.body.contains(errorContainer)) {
-                document.body.removeChild(errorContainer);
+            if (document.body.contains(messageContainer)) {
+                document.body.removeChild(messageContainer);
             }
         }, 500);
     }, duration);
