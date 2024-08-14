@@ -4,41 +4,26 @@ export async function Start()
 {
     if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
     {
-        Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
-
-
-
-
-        // Check if this is a Kakao callback
-        if (window.location.pathname === '/oauth/callback') {
-            console.log('Detected OAuth callback, handling Kakao login');
-            await LoginByKakao();
-            return;
-        }
-    
         // check if notification not granted: the permission cannot be denied I think it's a bug
-        if (Notification.permission != 'granted') {
-            FillTheBody('notification');
-            console.log('Notification permission not granted, showing notification page');
+        if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
+
+        // check if not configured
+        if (localStorage.getItem('user') == null)
+        {
+            await FillTheBody('login');
             return;
         }
-    
-        // Check if user is logged in
-        if (localStorage.getItem('user') !== null && localStorage.getItem('tokens') !== null) {
-            const isProfileComplete = await CheckProfileCompleteness();
-            if (!isProfileComplete) {
-                await FillTheBody('my-profile');
-                ShowIncompleteProfileWarning();
-            } else {
-                await FillTheBody('home');
-            }
-            history.pushState(null, '', '/');
-        } else {
-            await FillTheBody('login');
+        else
+        {
+            if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;}
         }
 
+        // init app
+        Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
+        if (window.location.pathname === '/oauth/callback') {await LoginByKakao(); return;}
 
-
+        // Show home
+        await FillTheBody('home');
     }
     else
     {
@@ -501,6 +486,7 @@ async function LoginByKakao() {
                 }
                 // Redirect to home page
                 await FillTheBody('home');
+                history.pushState(null, '', '/');
             } else {
                 console.error('Login failed:', data);
                 await FillTheBody('login');
