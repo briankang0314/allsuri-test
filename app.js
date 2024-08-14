@@ -1923,9 +1923,9 @@ function AddAvailabilitySlot() {
                 <div class="col-md-5 mb-2">
                     <select class="form-select availability-time" required>
                         <option value="">시간대 선택</option>
-                        <option value="morning">오전</option>
-                        <option value="afternoon">오후</option>
-                        <option value="evening">저녁</option>
+                        <option value="오전">오전</option>
+                        <option value="오후">오후</option>
+                        <option value="저녁">저녁</option>
                     </select>
                 </div>
                 <div class="col-md-2 mb-2">
@@ -2180,12 +2180,6 @@ function DisplayApplicationList(applications, orderStatus) {
 
 function ShowApplicationDetails(application) {
     // console.log('Showing details for application:', application);
-    
-    const timeTranslations = {
-        'morning': '오전',
-        'afternoon': '오후',
-        'evening': '저녁'
-    };
 
     const modalBody = document.getElementById('applicationDetailsModalBody');
     if (!modalBody) {
@@ -2195,8 +2189,7 @@ function ShowApplicationDetails(application) {
     }
 
     const availabilityHtml = application.availability.map(slot => {
-        const translatedTime = timeTranslations[slot.time] || slot.time; // Translate or use the original if not found
-        return `<li>${slot.date} ${translatedTime}</li>`;
+        return `<li>${slot.date} ${slot.time}</li>`;
     }).join('');
 
     modalBody.innerHTML = `
