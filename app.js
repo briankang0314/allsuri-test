@@ -1656,23 +1656,8 @@ async function SetupPostOrderPage() {
 
 
 
-// Application Management
+// Apply For Order Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// async function SetupApplyForOrderPage() {
-//     const profile = await FetchUserProfile();
-//     if (profile) {
-//         document.getElementById('applicantName').value = profile.nickname || '';
-//         document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
-//     }
-
-//     document.getElementById('applicationForm').addEventListener('submit', async (e) => {
-//         e.preventDefault();
-//         await SubmitApplication();
-//     });
-
-//     document.getElementById('addAvailabilityBtn').addEventListener('click', AddAvailabilitySlot);
-// }
-
 async function SetupApplyForOrderPage() {
     const profile = await FetchUserProfile();
     if (profile) {
@@ -1803,13 +1788,68 @@ function saveProgress() {
     localStorage.setItem('applicationFormData', JSON.stringify(data));
 }
 
-function EditSection(sectionId) {
-    const steps = document.querySelectorAll('.step');
-    const targetStep = Array.from(steps).findIndex(step => step.id === sectionId);
-    if (targetStep !== -1) {
-        currentStep = targetStep;
-        showStep(currentStep);
+function AddAvailabilitySlot() {
+    const container = document.getElementById('availabilityContainer');
+    const slotIndex = container.children.length;
+    const slotHtml = `
+        <div class="availability-slot mb-2">
+            <div class="row">
+                <div class="col-md-5 mb-2">
+                    <input type="date" class="form-control availability-date" required>
+                </div>
+                <div class="col-md-5 mb-2">
+                    <select class="form-select availability-time" required>
+                        <option value="">시간대 선택</option>
+                        <option value="morning">오전</option>
+                        <option value="afternoon">오후</option>
+                        <option value="evening">저녁</option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button type="button" class="btn btn-danger btn-sm remove-slot">삭제</button>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', slotHtml);
+
+    const removeBtn = container.lastElementChild.querySelector('.remove-slot');
+    removeBtn.addEventListener('click', function() {
+        this.closest('.availability-slot').remove();
+        saveProgress();
+    });
+
+    saveProgress();
+}
+
+function ValidateAvailability() {
+    const availabilityContainer = document.getElementById('availabilityContainer');
+    const availabilitySlots = availabilityContainer.querySelectorAll('.availability-slot');
+    const errorElement = document.getElementById('availabilityError');
+
+    if (availabilitySlots.length === 0) {
+        errorElement.textContent = '최소 하나의 작업 가능 일정을 추가해주세요.';
+        errorElement.style.display = 'block';
+        return false;
     }
+
+    let isValid = true;
+    availabilitySlots.forEach((slot, index) => {
+        const dateInput = slot.querySelector('.availability-date');
+        const timeInput = slot.querySelector('.availability-time');
+
+        if (!dateInput.value || !timeInput.value) {
+            isValid = false;
+            errorElement.textContent = `${index + 1}번째 일정의 날짜와 시간을 모두 선택해주세요.`;
+            errorElement.style.display = 'block';
+        }
+    });
+
+    if (isValid) {
+        errorElement.style.display = 'none';
+    }
+
+    return isValid;
 }
 
 function getAvailabilityData() {
@@ -1819,30 +1859,40 @@ function getAvailabilityData() {
     }));
 }
 
+function EditSection(sectionId) {
+    e.preventDefault(); // Prevent form submission
+    const steps = document.querySelectorAll('.step');
+    const targetStep = Array.from(steps).findIndex(step => step.id === sectionId);
+    if (targetStep !== -1) {
+        currentStep = targetStep;
+        showStep(currentStep);
+    }
+}
+
 function updatePreview() {
     const previewContent = document.getElementById('previewContent');
     previewContent.innerHTML = `
         <div class="mb-4">
-            <h3>기본 정보 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step1')">수정</button></h3>
+            <h3>기본 정보 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step1')">수정</button></h3>
             <p><strong>이름:</strong> ${document.getElementById('applicantName').value}</p>
             <p><strong>지역:</strong> ${document.getElementById('location').value}</p>
         </div>
         <div class="mb-4">
-            <h3>작업 가능 일정 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step2')">수정</button></h3>
+            <h3>작업 가능 일정 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step2')">수정</button></h3>
             <ul>
                 ${getAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
             </ul>
         </div>
         <div class="mb-4">
-            <h3>예상 완료 시간 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step3')">수정</button></h3>
+            <h3>예상 완료 시간 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step3')">수정</button></h3>
             <p>${document.getElementById('estimatedCompletion').value} 시간</p>
         </div>
         <div class="mb-4">
-            <h3>자기 소개 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step4')">수정</button></h3>
+            <h3>자기 소개 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step4')">수정</button></h3>
             <p>${document.getElementById('introduction').value}</p>
         </div>
         <div class="mb-4">
-            <h3>장비 및 질문 <button class="btn btn-sm btn-outline-primary" onclick="EditSection('step5')">수정</button></h3>
+            <h3>장비 및 질문 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step5')">수정</button></h3>
             <p><strong>보유 장비:</strong> ${document.getElementById('resources').value}</p>
             <p><strong>질문 사항:</strong> ${document.getElementById('questions').value}</p>
         </div>
@@ -1910,70 +1960,19 @@ async function SubmitApplication() {
     }
 }
 
-function AddAvailabilitySlot() {
-    const container = document.getElementById('availabilityContainer');
-    const slotIndex = container.children.length;
-    const slotHtml = `
-        <div class="availability-slot mb-2">
-            <div class="row">
-                <div class="col-md-5 mb-2">
-                    <input type="date" class="form-control availability-date" required>
-                </div>
-                <div class="col-md-5 mb-2">
-                    <select class="form-select availability-time" required>
-                        <option value="">시간대 선택</option>
-                        <option value="morning">오전</option>
-                        <option value="afternoon">오후</option>
-                        <option value="evening">저녁</option>
-                    </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <button type="button" class="btn btn-danger btn-sm remove-slot">삭제</button>
-                </div>
-            </div>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', slotHtml);
 
-    const removeBtn = container.lastElementChild.querySelector('.remove-slot');
-    removeBtn.addEventListener('click', function() {
-        this.closest('.availability-slot').remove();
-        saveProgress();
-    });
 
-    saveProgress();
-}
 
-function ValidateAvailability() {
-    const availabilityContainer = document.getElementById('availabilityContainer');
-    const availabilitySlots = availabilityContainer.querySelectorAll('.availability-slot');
-    const errorElement = document.getElementById('availabilityError');
 
-    if (availabilitySlots.length === 0) {
-        errorElement.textContent = '최소 하나의 작업 가능 일정을 추가해주세요.';
-        errorElement.style.display = 'block';
-        return false;
-    }
 
-    let isValid = true;
-    availabilitySlots.forEach((slot, index) => {
-        const dateInput = slot.querySelector('.availability-date');
-        const timeInput = slot.querySelector('.availability-time');
 
-        if (!dateInput.value || !timeInput.value) {
-            isValid = false;
-            errorElement.textContent = `${index + 1}번째 일정의 날짜와 시간을 모두 선택해주세요.`;
-            errorElement.style.display = 'block';
-        }
-    });
 
-    if (isValid) {
-        errorElement.style.display = 'none';
-    }
 
-    return isValid;
-}
 
+
+
+// Application Display and Management
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function FetchAndDisplayApplications(orderId) {
     if (!orderId) {
         console.error('Invalid order ID');
