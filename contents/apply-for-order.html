@@ -77,6 +77,31 @@
                 padding: 15px;
             }
         }
+        .preview-section {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .preview-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .preview-content {
+            font-size: 1rem;
+        }
+        .preview-content ul {
+            padding-left: 20px;
+        }
+        .edit-section {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+        }
     </style>
 </head>
 <body>
@@ -200,9 +225,11 @@
                     </div>
 
                     <!-- Preview Step -->
-                    <div class="step" id="preview">
-                        <h2 class="mb-3">지원서 미리보기</h2>
-                        <div id="previewContent"></div>
+                    <div id="preview" class="step">
+                        <h2 class="mb-4 text-2xl font-bold">지원서 미리보기</h2>
+                        <div id="previewContent" class="space-y-4">
+                            <!-- Content will be dynamically inserted here -->
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">

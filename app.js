@@ -1851,31 +1851,56 @@ async function SetupApplyForOrderPage() {
             category: ta.dataset.category,
             text: ta.value
         }));
-
+    
         previewContent.innerHTML = `
-            <div class="mb-4">
-                <h3>기본 정보 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step1">수정</button></h3>
-                <p><strong>이름:</strong> ${document.getElementById('applicantName').value}</p>
-                <p><strong>지역:</strong> ${document.getElementById('location').value}</p>
+            <div class="preview-section">
+                <h3 class="preview-title">
+                    기본 정보
+                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step1">수정</button>
+                </h3>
+                <div class="preview-content">
+                    <p><strong>이름:</strong> ${document.getElementById('applicantName').value}</p>
+                    <p><strong>지역:</strong> ${document.getElementById('location').value}</p>
+                </div>
             </div>
-            <div class="mb-4">
-                <h3>작업 가능 일정 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button></h3>
-                <ul>
-                    ${GetAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
-                </ul>
+            <div class="preview-section">
+                <h3 class="preview-title">
+                    작업 가능 일정
+                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button>
+                </h3>
+                <div class="preview-content">
+                    <ul>
+                        ${GetAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
+                    </ul>
+                </div>
             </div>
-            <div class="mb-4">
-                <h3>예상 완료 시간 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button></h3>
-                <p>${estimatedCompletion === 'custom' ? `${customEstimatedTime} 시간` : estimatedCompletion}</p>
+            <div class="preview-section">
+                <h3 class="preview-title">
+                    예상 완료 시간
+                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button>
+                </h3>
+                <div class="preview-content">
+                    <p>${estimatedCompletion === 'custom' ? `${customEstimatedTime} 시간` : estimatedCompletion}</p>
+                </div>
             </div>
-            <div class="mb-4">
-                <h3>자기 소개 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button></h3>
-                <p>${document.getElementById('introduction').value}</p>
+            <div class="preview-section">
+                <h3 class="preview-title">
+                    자기 소개
+                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button>
+                </h3>
+                <div class="preview-content">
+                    <p>${document.getElementById('introduction').value}</p>
+                </div>
             </div>
-            <div class="mb-4">
-                <h3>장비 및 질문 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button></h3>
-                <p><strong>보유 장비:</strong> ${equipmentChecked.join(', ')}${otherEquipment ? `, ${otherEquipment}` : ''}</p>
-                ${questions.map(q => `<p><strong>${q.category} 관련 질문:</strong> ${q.text}</p>`).join('')}
+            <div class="preview-section">
+                <h3 class="preview-title">
+                    장비 및 질문
+                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button>
+                </h3>
+                <div class="preview-content">
+                    <p><strong>보유 장비:</strong> ${equipmentChecked.join(', ')}${otherEquipment ? `, ${otherEquipment}` : ''}</p>
+                    ${questions.map(q => `<p><strong>${q.category} 관련 질문:</strong> ${q.text}</p>`).join('')}
+                </div>
             </div>
         `;
     
