@@ -1744,6 +1744,48 @@ async function SetupApplyForOrderPage() {
         }
     });
 
+    // New event listeners for improved form elements
+    const estimatedCompletionSelect = document.getElementById('estimatedCompletion');
+    const customEstimatedTimeContainer = document.getElementById('customEstimatedTimeContainer');
+    const customEstimatedTimeInput = document.getElementById('customEstimatedTime');
+    const introductionTextarea = document.getElementById('introduction');
+    const introductionCharCount = document.getElementById('introductionCharCount');
+    const questionCategory = document.getElementById('questionCategory');
+    const questionTextareas = document.getElementById('questionTextareas');
+
+    estimatedCompletionSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customEstimatedTimeContainer.style.display = 'block';
+            customEstimatedTimeInput.required = true;
+        } else {
+            customEstimatedTimeContainer.style.display = 'none';
+            customEstimatedTimeInput.required = false;
+            customEstimatedTimeInput.value = '';
+        }
+    });
+
+    introductionTextarea.addEventListener('input', function() {
+        const currentLength = this.value.length;
+        introductionCharCount.textContent = currentLength;
+        if (currentLength > 500) {
+            this.value = this.value.slice(0, 500);
+            introductionCharCount.textContent = 500;
+        }
+    });
+
+    questionCategory.addEventListener('change', function() {
+        const category = this.value;
+        if (category) {
+            const textarea = document.createElement('textarea');
+            textarea.className = 'form-control mt-2';
+            textarea.rows = 3;
+            textarea.placeholder = `${this.options[this.selectedIndex].text}에 대한 질문을 입력해주세요.`;
+            textarea.dataset.category = category;
+            questionTextareas.appendChild(textarea);
+            this.selectedIndex = 0; // Reset select to default option
+        }
+    });
+
     function loadProgress() {
         const savedData = localStorage.getItem('applicationFormData');
         if (savedData) {
@@ -1757,6 +1799,25 @@ async function SetupApplyForOrderPage() {
             currentStep = data.currentStep || 0;
             if (data.availability) {
                 data.availability.forEach(AddAvailabilitySlot);
+            }
+            if (data.equipment) {
+                data.equipment.forEach(eq => {
+                    const checkbox = document.querySelector(`input[type="checkbox"][value="${eq}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            if (data.otherEquipment) {
+                document.getElementById('otherEquipment').value = data.otherEquipment;
+            }
+            if (data.questions) {
+                data.questions.forEach(q => {
+                    const textarea = document.createElement('textarea');
+                    textarea.className = 'form-control mt-2';
+                    textarea.rows = 3;
+                    textarea.value = q.text;
+                    textarea.dataset.category = q.category;
+                    questionTextareas.appendChild(textarea);
+                });
             }
             showStep(currentStep);
         }
@@ -1782,6 +1843,15 @@ async function SetupApplyForOrderPage() {
 
     function updatePreview() {
         const previewContent = document.getElementById('previewContent');
+        const estimatedCompletion = document.getElementById('estimatedCompletion').value;
+        const customEstimatedTime = document.getElementById('customEstimatedTime').value;
+        const equipmentChecked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        const otherEquipment = document.getElementById('otherEquipment').value;
+        const questions = Array.from(questionTextareas.querySelectorAll('textarea')).map(ta => ({
+            category: ta.dataset.category,
+            text: ta.value
+        }));
+
         previewContent.innerHTML = `
             <div class="mb-4">
                 <h3>기본 정보 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step1">수정</button></h3>
@@ -1796,7 +1866,7 @@ async function SetupApplyForOrderPage() {
             </div>
             <div class="mb-4">
                 <h3>예상 완료 시간 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button></h3>
-                <p>${document.getElementById('estimatedCompletion').value} 시간</p>
+                <p>${estimatedCompletion === 'custom' ? `${customEstimatedTime} 시간` : estimatedCompletion}</p>
             </div>
             <div class="mb-4">
                 <h3>자기 소개 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button></h3>
@@ -1804,8 +1874,8 @@ async function SetupApplyForOrderPage() {
             </div>
             <div class="mb-4">
                 <h3>장비 및 질문 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button></h3>
-                <p><strong>보유 장비:</strong> ${document.getElementById('resources').value}</p>
-                <p><strong>질문 사항:</strong> ${document.getElementById('questions').value}</p>
+                <p><strong>보유 장비:</strong> ${equipmentChecked.join(', ')}${otherEquipment ? `, ${otherEquipment}` : ''}</p>
+                ${questions.map(q => `<p><strong>${q.category} 관련 질문:</strong> ${q.text}</p>`).join('')}
             </div>
         `;
     
@@ -1829,10 +1899,16 @@ async function SetupApplyForOrderPage() {
 }
 
 function SaveProgress() {
-    const formData = new FormData(form);
+    const formData = new FormData(document.getElementById('applicationForm'));
     const data = Object.fromEntries(formData.entries());
     data.currentStep = currentStep;
     data.availability = GetAvailabilityData();
+    data.equipment = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+    data.otherEquipment = document.getElementById('otherEquipment').value;
+    data.questions = Array.from(document.getElementById('questionTextareas').querySelectorAll('textarea')).map(ta => ({
+        category: ta.dataset.category,
+        text: ta.value
+    }));
     localStorage.setItem('applicationFormData', JSON.stringify(data));
 }
 
@@ -1919,21 +1995,27 @@ async function SubmitApplication() {
         return;
     }
 
-    const availabilitySlots = document.querySelectorAll('.availability-slot');
-    const availability = Array.from(availabilitySlots).map(slot => {
-        const date = slot.querySelector('.availability-date').value;
-        const time = slot.querySelector('.availability-time').value;
-        return { date, time };
-    });
+    const estimatedCompletionSelect = document.getElementById('estimatedCompletion');
+    const customEstimatedTimeInput = document.getElementById('customEstimatedTime');
+    const estimatedCompletion = estimatedCompletionSelect.value === 'custom' 
+        ? parseInt(customEstimatedTimeInput.value) 
+        : estimatedCompletionSelect.value;
+
+    const equipmentChecked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+    const otherEquipment = document.getElementById('otherEquipment').value;
+    const questions = Array.from(document.getElementById('questionTextareas').querySelectorAll('textarea')).map(ta => ({
+        category: ta.dataset.category,
+        text: ta.value
+    }));
 
     const applicationData = {
         order_id: currentOrderId,
         applicant_id: JSON.parse(localStorage.getItem('user')).user_id,
-        availability: availability,
-        estimated_completion: parseInt(document.getElementById('estimatedCompletion').value) || 1,
+        availability: GetAvailabilityData(),
+        estimated_completion: estimatedCompletion,
         introduction: document.getElementById('introduction').value,
-        resources: document.getElementById('resources').value,
-        questions: document.getElementById('questions').value
+        equipment: [...equipmentChecked, otherEquipment].filter(Boolean),
+        questions: questions
     };
 
     try {
