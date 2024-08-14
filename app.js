@@ -270,6 +270,9 @@ async function FillTheBody(contentName) {
                 case 'post-order':
                     await SetupPostOrderPage();
                     break;
+                case 'apply-for-order':
+                    await SetupApplyForOrderPage();
+                    break;
                 case 'my-orders':
                     await SetupMyOrdersPage();
                     break;
@@ -789,7 +792,11 @@ function ShowOrderDetails(order, currentUser) {
     } else {
         applyForOrderBtn.style.display = 'block';
         applyForOrderBtn.disabled = order.status !== 'open';
-        applyForOrderBtn.onclick = OpenApplicationForm;
+        applyForOrderBtn.onclick = async () => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
+            modal.hide();
+            await FillTheBody('apply-for-order');
+        };
     }
 
     const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
@@ -1666,7 +1673,6 @@ async function OpenApplicationForm() {
 
         // Populate form with user data and make fields read-only
         document.getElementById('applicantName').value = profile.nickname || '';
-        document.getElementById('contactNumber').value = profile.phone || '';
         document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
 
         // Clear and initialize other fields
@@ -1710,6 +1716,30 @@ async function OpenApplicationForm() {
     }
 }
 
+async function SetupApplyForOrderPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('orderId');
+    
+    if (!orderId) {
+        ShowErrorMessage('오더 ID가 없습니다. 홈페이지로 돌아갑니다.');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    const profile = await FetchUserProfile();
+    if (profile) {
+        document.getElementById('applicantName').value = profile.nickname || '';
+        document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
+    }
+
+    document.getElementById('applicationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await SubmitApplication(orderId);
+    });
+
+    document.getElementById('addAvailabilityBtn').addEventListener('click', AddAvailabilitySlot);
+}
+
 async function SubmitApplication() {
     if (!await CheckProfileCompleteness()) {
         ShowErrorMessage('오더를 등록하려면 프로필을 완성해야 합니다.');
@@ -1719,7 +1749,7 @@ async function SubmitApplication() {
     }
 
     if (!ValidateAvailability()) {
-        return; // Stop submission if validation fails
+        return;
     }
 
     const availabilitySlots = document.querySelectorAll('.availability-slot');
@@ -1741,7 +1771,7 @@ async function SubmitApplication() {
     };
 
     try {
-         // Show loading indicator
+        ShowLoading();
 
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/SubmitApplication', {
             method: 'POST',
@@ -1755,21 +1785,81 @@ async function SubmitApplication() {
 
         if (response.ok) {
             alert('지원이 성공적으로 제출되었습니다.');
-            CloseAllModals();
-            await FetchAndDisplayOrderPosts(currentPage);
+            await FillTheBody('home');
         } else if (response.status === 400 && result.message === 'You have already applied to this order.') {
             alert('이미 이 오더에 지원하셨습니다.');
-            CloseAllModals();
+            await FillTheBody('home');
         } else {
             throw new Error(result.error || result.message || '지원 제출에 실패했습니다.');
         }
     } catch (error) {
         console.error('Error submitting application:', error);
-        alert('지원 제출 중 오류가 발생했습니다. 다시 시도해 주세요.');
+        ShowErrorMessage('지원 제출 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
-         // Hide loading indicator
+        HideLoading();
     }
 }
+
+// async function SubmitApplication() {
+//     if (!await CheckProfileCompleteness()) {
+//         ShowErrorMessage('오더를 등록하려면 프로필을 완성해야 합니다.');
+//         await FillTheBody('my-profile');
+//         ShowIncompleteProfileWarning();
+//         return;
+//     }
+
+//     if (!ValidateAvailability()) {
+//         return; // Stop submission if validation fails
+//     }
+
+//     const availabilitySlots = document.querySelectorAll('.availability-slot');
+//     const availability = Array.from(availabilitySlots).map(slot => {
+//         const date = slot.querySelector('.availability-date').value;
+//         const time = slot.querySelector('.availability-time').value;
+//         return { date, time };
+//     });
+
+//     const applicationData = {
+//         order_id: currentOrderId,
+//         applicant_id: JSON.parse(localStorage.getItem('user')).user_id,
+//         years_of_experience: parseInt(document.getElementById('yearsOfExperience').value),
+//         availability: availability,
+//         estimated_completion: parseInt(document.getElementById('estimatedCompletion').value) || 1,
+//         introduction: document.getElementById('introduction').value,
+//         resources: document.getElementById('resources').value,
+//         questions: document.getElementById('questions').value
+//     };
+
+//     try {
+//          // Show loading indicator
+
+//         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/SubmitApplication', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify(applicationData)
+//         });
+
+//         const result = await response.json();
+
+//         if (response.ok) {
+//             alert('지원이 성공적으로 제출되었습니다.');
+//             CloseAllModals();
+//             await FetchAndDisplayOrderPosts(currentPage);
+//         } else if (response.status === 400 && result.message === 'You have already applied to this order.') {
+//             alert('이미 이 오더에 지원하셨습니다.');
+//             CloseAllModals();
+//         } else {
+//             throw new Error(result.error || result.message || '지원 제출에 실패했습니다.');
+//         }
+//     } catch (error) {
+//         console.error('Error submitting application:', error);
+//         alert('지원 제출 중 오류가 발생했습니다. 다시 시도해 주세요.');
+//     } finally {
+//          // Hide loading indicator
+//     }
+// }
 
 function AddAvailabilitySlot() {
     const container = document.getElementById('availabilityContainer');
