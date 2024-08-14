@@ -91,12 +91,14 @@ let isLoading = false;
 
 const loadingIndicatorHTML = `
   <div class="loading-overlay">
-    <svg class="wrench-loader" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-      <path class="wrench" d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
-    </svg>
+    <div class="spinner">
+      <div class="double-bounce1"></div>
+      <div class="double-bounce2"></div>
+    </div>
   </div>
 `;
 
+// Update the loadingIndicatorCSS variable
 const loadingIndicatorCSS = `
   .loading-overlay {
     position: fixed;
@@ -111,23 +113,34 @@ const loadingIndicatorCSS = `
     z-index: 9999;
   }
 
-  .wrench-loader {
-    width: 100px;
-    height: 100px;
+  .spinner {
+    width: 60px;
+    height: 60px;
+    position: relative;
   }
 
-  .wrench {
-    fill: #007bff;
-    transform-origin: center;
-    animation: wrench-rotate 2s infinite ease-in-out;
+  .double-bounce1, .double-bounce2 {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #007bff;
+    opacity: 0.6;
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: sk-bounce 2.0s infinite ease-in-out;
   }
 
-  @keyframes wrench-rotate {
-    0% { transform: rotate(0deg); }
-    25% { transform: rotate(90deg); }
-    50% { transform: rotate(180deg); }
-    75% { transform: rotate(270deg); }
-    100% { transform: rotate(360deg); }
+  .double-bounce2 {
+    animation-delay: -1.0s;
+  }
+
+  @keyframes sk-bounce {
+    0%, 100% { 
+      transform: scale(0.0);
+    } 50% { 
+      transform: scale(1.0);
+    }
   }
 `;
 
