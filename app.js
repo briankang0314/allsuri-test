@@ -1684,7 +1684,7 @@ async function SetupApplyForOrderPage() {
         updateButtons();
     
         if (step === steps.length - 1) {
-            updatePreview();
+            UpdatePreview();
         }
     }
 
@@ -1718,7 +1718,7 @@ async function SetupApplyForOrderPage() {
             if (currentStep < steps.length - 1) {
                 currentStep++;
                 showStep(currentStep);
-                saveProgress();
+                SaveProgress();
             }
         } else {
             ShowErrorMessage('모든 필수 항목을 작성해주세요.');
@@ -1777,20 +1777,19 @@ async function SetupApplyForOrderPage() {
     showStep(currentStep);
 
     // Add autosave on input changes
-    form.addEventListener('input', saveProgress);
+    form.addEventListener('input', SaveProgress);
 }
 
-function saveProgress() {
+function SaveProgress() {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     data.currentStep = currentStep;
-    data.availability = getAvailabilityData();
+    data.availability = GetAvailabilityData();
     localStorage.setItem('applicationFormData', JSON.stringify(data));
 }
 
 function AddAvailabilitySlot() {
     const container = document.getElementById('availabilityContainer');
-    const slotIndex = container.children.length;
     const slotHtml = `
         <div class="availability-slot mb-2">
             <div class="row">
@@ -1816,10 +1815,10 @@ function AddAvailabilitySlot() {
     const removeBtn = container.lastElementChild.querySelector('.remove-slot');
     removeBtn.addEventListener('click', function() {
         this.closest('.availability-slot').remove();
-        saveProgress();
+        SaveProgress();
     });
 
-    saveProgress();
+    SaveProgress();
 }
 
 function ValidateAvailability() {
@@ -1852,7 +1851,7 @@ function ValidateAvailability() {
     return isValid;
 }
 
-function getAvailabilityData() {
+function GetAvailabilityData() {
     return Array.from(document.querySelectorAll('.availability-slot')).map(slot => ({
         date: slot.querySelector('.availability-date').value,
         time: slot.querySelector('.availability-time').value
@@ -1860,7 +1859,6 @@ function getAvailabilityData() {
 }
 
 function EditSection(sectionId) {
-    e.preventDefault(); // Prevent form submission
     const steps = document.querySelectorAll('.step');
     const targetStep = Array.from(steps).findIndex(step => step.id === sectionId);
     if (targetStep !== -1) {
@@ -1869,35 +1867,46 @@ function EditSection(sectionId) {
     }
 }
 
-function updatePreview() {
+function UpdatePreview() {
     const previewContent = document.getElementById('previewContent');
     previewContent.innerHTML = `
         <div class="mb-4">
-            <h3>기본 정보 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step1')">수정</button></h3>
+            <h3>기본 정보 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step1">수정</button></h3>
             <p><strong>이름:</strong> ${document.getElementById('applicantName').value}</p>
             <p><strong>지역:</strong> ${document.getElementById('location').value}</p>
         </div>
         <div class="mb-4">
-            <h3>작업 가능 일정 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step2')">수정</button></h3>
+            <h3>작업 가능 일정 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button></h3>
             <ul>
-                ${getAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
+                ${GetAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
             </ul>
         </div>
         <div class="mb-4">
-            <h3>예상 완료 시간 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step3')">수정</button></h3>
+            <h3>예상 완료 시간 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button></h3>
             <p>${document.getElementById('estimatedCompletion').value} 시간</p>
         </div>
         <div class="mb-4">
-            <h3>자기 소개 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step4')">수정</button></h3>
+            <h3>자기 소개 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button></h3>
             <p>${document.getElementById('introduction').value}</p>
         </div>
         <div class="mb-4">
-            <h3>장비 및 질문 <button type="button" class="btn btn-sm btn-outline-primary" onclick="EditSection('step5')">수정</button></h3>
+            <h3>장비 및 질문 <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button></h3>
             <p><strong>보유 장비:</strong> ${document.getElementById('resources').value}</p>
             <p><strong>질문 사항:</strong> ${document.getElementById('questions').value}</p>
         </div>
     `;
+
+    // Add event listeners to all edit buttons
+    const editButtons = previewContent.querySelectorAll('.edit-section');
+    editButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sectionId = this.getAttribute('data-section');
+            EditSection(sectionId);
+        });
+    });
 }
+
 
 async function SubmitApplication() {
     if (!await CheckProfileCompleteness()) {
