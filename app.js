@@ -2350,21 +2350,25 @@ function showMessage(message, duration, backgroundColor) {
     const messageContainer = document.createElement('div');
     messageContainer.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: 50%;
         left: 50%;
-        transform: translateX(-50%);
+        transform: translate(-50%, -50%);
         background-color: ${backgroundColor};
         color: white;
-        padding: 10px 20px;
+        padding: 15px 25px;
         border-radius: 5px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         z-index: 10000;
         transition: opacity 0.5s ease-in-out;
+        text-align: center;
+        max-width: 80%;
     `;
 
     // Create message text
     const messageText = document.createElement('p');
     messageText.style.margin = '0';
+    messageText.style.fontSize = '16px';
+    messageText.style.lineHeight = '1.4';
     messageText.textContent = message;
 
     // Append message to container
