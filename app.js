@@ -1712,12 +1712,59 @@ async function SetupApplyForOrderPage() {
         }
     }
 
+    function saveProgress() {
+        const formData = new FormData(document.getElementById('applicationForm'));
+        const data = Object.fromEntries(formData.entries());
+        data.currentStep = currentStep;
+        data.availability = GetAvailabilityData();
+        data.equipment = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        data.otherEquipment = document.getElementById('otherEquipment').value;
+        data.questions = Array.from(document.getElementById('questionTextareas').querySelectorAll('textarea')).map(ta => ({
+            category: ta.dataset.category,
+            text: ta.value
+        }));
+        localStorage.setItem('applicationFormData', JSON.stringify(data));
+    }
+    
+    function addAvailabilitySlot() {
+        const container = document.getElementById('availabilityContainer');
+        const slotHtml = `
+            <div class="availability-slot mb-2">
+                <div class="row">
+                    <div class="col-md-5 mb-2">
+                        <input type="date" class="form-control availability-date" required>
+                    </div>
+                    <div class="col-md-5 mb-2">
+                        <select class="form-select availability-time" required>
+                            <option value="">시간대 선택</option>
+                            <option value="오전">오전</option>
+                            <option value="오후">오후</option>
+                            <option value="저녁">저녁</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <button type="button" class="btn btn-danger btn-sm remove-slot">삭제</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', slotHtml);
+    
+        const removeBtn = container.lastElementChild.querySelector('.remove-slot');
+        removeBtn.addEventListener('click', function() {
+            this.closest('.availability-slot').remove();
+            saveProgress();
+        });
+    
+        saveProgress();
+    }
+
     nextBtn.addEventListener('click', function() {
         if (validateStep(currentStep)) {
             if (currentStep < steps.length - 1) {
                 currentStep++;
                 showStep(currentStep);
-                SaveProgress();
+                saveProgress();
             }
         } else {
             ShowErrorMessage('모든 필수 항목을 작성해주세요.');
@@ -1731,7 +1778,7 @@ async function SetupApplyForOrderPage() {
         }
     });
 
-    addAvailabilityBtn.addEventListener('click', AddAvailabilitySlot);
+    addAvailabilityBtn.addEventListener('click', addAvailabilitySlot);
 
     backBtn.addEventListener('click', () => FillTheBody('home'));
 
@@ -1798,7 +1845,7 @@ async function SetupApplyForOrderPage() {
             });
             currentStep = data.currentStep || 0;
             if (data.availability) {
-                data.availability.forEach(AddAvailabilitySlot);
+                data.availability.forEach(addAvailabilitySlot);
             }
             if (data.equipment) {
                 data.equipment.forEach(eq => {
@@ -1920,54 +1967,7 @@ async function SetupApplyForOrderPage() {
     showStep(currentStep);
 
     // Add autosave on input changes
-    form.addEventListener('input', SaveProgress);
-}
-
-function SaveProgress() {
-    const formData = new FormData(document.getElementById('applicationForm'));
-    const data = Object.fromEntries(formData.entries());
-    data.currentStep = currentStep;
-    data.availability = GetAvailabilityData();
-    data.equipment = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-    data.otherEquipment = document.getElementById('otherEquipment').value;
-    data.questions = Array.from(document.getElementById('questionTextareas').querySelectorAll('textarea')).map(ta => ({
-        category: ta.dataset.category,
-        text: ta.value
-    }));
-    localStorage.setItem('applicationFormData', JSON.stringify(data));
-}
-
-function AddAvailabilitySlot() {
-    const container = document.getElementById('availabilityContainer');
-    const slotHtml = `
-        <div class="availability-slot mb-2">
-            <div class="row">
-                <div class="col-md-5 mb-2">
-                    <input type="date" class="form-control availability-date" required>
-                </div>
-                <div class="col-md-5 mb-2">
-                    <select class="form-select availability-time" required>
-                        <option value="">시간대 선택</option>
-                        <option value="오전">오전</option>
-                        <option value="오후">오후</option>
-                        <option value="저녁">저녁</option>
-                    </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <button type="button" class="btn btn-danger btn-sm remove-slot">삭제</button>
-                </div>
-            </div>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', slotHtml);
-
-    const removeBtn = container.lastElementChild.querySelector('.remove-slot');
-    removeBtn.addEventListener('click', function() {
-        this.closest('.availability-slot').remove();
-        SaveProgress();
-    });
-
-    SaveProgress();
+    form.addEventListener('input', saveProgress);
 }
 
 function ValidateAvailability() {
