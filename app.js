@@ -178,22 +178,15 @@ let currentOrderId = null;
 // Dynamic Content Loading
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function FillTheBody(contentName) {
-    console.time(`FillTheBody-${contentName}`);
-    
-
     try {
         if (contentName === 'my-profile') {
-            console.time('FetchUserProfile');
             const profile = await FetchUserProfile();
-            console.timeEnd('FetchUserProfile');
             if (!profile) {
                 throw new Error('Failed to fetch user profile');
             }
 
             // Now fetch and render the page content
-            console.time('FetchPageContent');
             const content = await fetch(`/contents/${contentName}.html`).then(response => response.text());
-            console.timeEnd('FetchPageContent');
             document.body.innerHTML = content;
 
             // Set up the page with the fetched profile data
@@ -284,8 +277,6 @@ async function FillTheBody(contentName) {
     } catch (error) {
         console.error(`Error loading ${contentName}:`, error);
         ShowErrorMessage(`${contentName} 페이지 로딩 중 오류가 발생했습니다. 다시 시도해주세요.`);
-    } finally {
-        console.timeEnd(`FillTheBody-${contentName}`);
     }
 }
 
@@ -657,7 +648,6 @@ async function FetchAndDisplayOrderPosts(page = 1) {
     ShowLoading();
     
     try {
-        console.time('MakeAuthenticatedRequest-GetOrders');
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrders', {
             method: 'POST',
             headers: {
@@ -671,29 +661,22 @@ async function FetchAndDisplayOrderPosts(page = 1) {
                 sort: currentSort || 'created_at'
             })
         });
-        console.timeEnd('MakeAuthenticatedRequest-GetOrders');
 
         if (!response.ok) {
             throw new Error('Failed to fetch order posts');
         }
-
-        console.time('ParseJSONResponse');
         const result = await response.json();
-        console.timeEnd('ParseJSONResponse');
         const orderPosts = result.orders;
         console.log('Fetched order posts:', orderPosts);
         const totalPages = result.totalPages || 1;
 
-        console.time('DisplayOrderPosts');
         DisplayOrderPosts(orderPosts);
-        console.timeEnd('DisplayOrderPosts');
         UpdatePagination(page, totalPages);
     } catch (error) {
         console.error('Error fetching order posts:', error);
         ShowErrorMessage('오더를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
         HideLoading();
-        console.timeEnd('FetchAndDisplayOrderPosts');
     }
 }
 
