@@ -39,6 +39,7 @@ export async function Start()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
+import flatpickr from 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/esm/index.js';
 
 // Global Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
