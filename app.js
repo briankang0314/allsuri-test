@@ -1699,7 +1699,7 @@ async function SetupApplyForOrderPage() {
                     <option value="">시간대 선택</option>
                     <option value="오전">오전</option>
                     <option value="오후">오후</option>
-                    <option value="저녁">저녁</option>
+                    <option value="저녁">저녕</option>
                 </select>
             `;
             availabilityList.appendChild(listItem);
@@ -1834,7 +1834,8 @@ async function SetupApplyForOrderPage() {
                 }
             });
             currentStep = data.currentStep || 0;
-            if (data.availability) {
+            if (data.availability && data.availability.length > 0) {
+                initializeCalendar(); // Ensure calendar is initialized
                 calendar.setDate(data.availability.map(a => a.date));
                 updateAvailabilityList(data.availability.map(a => new Date(a.date)));
                 data.availability.forEach((a, index) => {
