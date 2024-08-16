@@ -776,8 +776,8 @@ function ShowOrderDetails(order, currentUser) {
         applyForOrderBtn.onclick = async () => {
             const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
             modal.hide();
-            await FillTheBody('apply-for-order');
             InitializeApplicationForm(order.order_id);
+            await FillTheBody('apply-for-order');
         };
     }
 
