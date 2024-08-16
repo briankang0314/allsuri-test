@@ -1675,6 +1675,7 @@ function InitializeApplicationForm(orderId) {
         currentStep: 0
     };
     localStorage.setItem('applicationFormData', JSON.stringify(applicationFormData));
+    console.log('Application form data initialized:', applicationFormData);
 }
 
 async function SetupApplyForOrderPage() {
@@ -1887,6 +1888,7 @@ async function SetupApplyForOrderPage() {
 
     function loadProgress() {
         const applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
+        console.log('Loaded application form data:', applicationFormData);
         if (applicationFormData) {
             // Populate form fields with saved data
             document.getElementById('applicantName').value = applicationFormData.applicantName || '';
