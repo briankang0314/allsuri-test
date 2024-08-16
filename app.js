@@ -1795,23 +1795,33 @@ async function SetupApplyForOrderPage() {
 
     function saveProgress() {
         const formData = new FormData(document.getElementById('applicationForm'));
+        const storedData = JSON.parse(localStorage.getItem('applicationFormData'));
+        
         applicationFormData = {
-            ...JSON.parse(localStorage.getItem('applicationFormData')),
+            ...storedData,
             applicantName: document.getElementById('applicantName').value,
             location: document.getElementById('location').value,
             availability: GetAvailabilityData(),
             estimated_completion: formData.get('estimatedCompletion'),
             customEstimatedTime: formData.get('customEstimatedTime'),
-            introduction: formData.get('introduction'),
+            introduction: document.getElementById('introduction').value,
             equipment: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
-            otherEquipment: formData.get('otherEquipment'),
+            otherEquipment: document.getElementById('otherEquipment').value,
             questions: Array.from(document.getElementById('questionTextareas').querySelectorAll('textarea')).map(ta => ({
                 category: ta.dataset.category,
                 text: ta.value
             })),
             currentStep: currentStep
         };
+
+        for (let key in applicationFormData) {
+            if (applicationFormData[key] === '') {
+                applicationFormData[key] = null;
+            }
+        }
+
         localStorage.setItem('applicationFormData', JSON.stringify(applicationFormData));
+        console.log('Saved application form data:', applicationFormData);
     }
 
     nextBtn.addEventListener('click', function() {
