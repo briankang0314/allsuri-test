@@ -1680,6 +1680,8 @@ function InitializeApplicationForm(orderId) {
 }
 
 async function SetupApplyForOrderPage() {
+    await loadUserProfile();
+
     let applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
 
     if (!applicationFormData || !applicationFormData.order_id) {
@@ -1687,8 +1689,6 @@ async function SetupApplyForOrderPage() {
         await FillTheBody('home');
         return;
     }
-
-    await loadUserProfile();
 
     const form = document.getElementById('applicationForm');
     const steps = document.querySelectorAll('.step');
