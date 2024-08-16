@@ -777,6 +777,7 @@ function ShowOrderDetails(order, currentUser) {
             const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
             modal.hide();
             await FillTheBody('apply-for-order');
+            InitializeApplicationForm(order.order_id);
         };
     }
 
@@ -1665,7 +1666,28 @@ async function loadUserProfile() {
     }
 }
 
+function InitializeApplicationForm(orderId) {
+    let applicationFormData = {
+        order_id: orderId,
+        applicant_id: JSON.parse(localStorage.getItem('user')).user_id,
+        availability: [],
+        estimated_completion: '',
+        introduction: '',
+        equipment: [],
+        questions: []
+    };
+    localStorage.setItem('applicationFormData', JSON.stringify(applicationFormData));
+}
+
 async function SetupApplyForOrderPage() {
+    let applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
+
+    if (!applicationFormData || !applicationFormData.order_id) {
+        ShowErrorMessage('지원서 데이터를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
+        await FillTheBody('home');
+        return;
+    }
+
     await loadUserProfile();
 
     const form = document.getElementById('applicationForm');
@@ -1776,16 +1798,23 @@ async function SetupApplyForOrderPage() {
 
     function saveProgress() {
         const formData = new FormData(document.getElementById('applicationForm'));
-        const data = Object.fromEntries(formData.entries());
-        data.currentStep = currentStep;
-        data.availability = GetAvailabilityData();
-        data.equipment = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-        data.otherEquipment = document.getElementById('otherEquipment').value;
-        data.questions = Array.from(document.getElementById('questionTextareas').querySelectorAll('textarea')).map(ta => ({
-            category: ta.dataset.category,
-            text: ta.value
-        }));
-        localStorage.setItem('applicationFormData', JSON.stringify(data));
+        applicationFormData = {
+            ...JSON.parse(localStorage.getItem('applicationFormData')),
+            applicantName: document.getElementById('applicantName').value,
+            location: document.getElementById('location').value,
+            availability: GetAvailabilityData(),
+            estimated_completion: formData.get('estimatedCompletion'),
+            customEstimatedTime: formData.get('customEstimatedTime'),
+            introduction: formData.get('introduction'),
+            equipment: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+            otherEquipment: formData.get('otherEquipment'),
+            questions: Array.from(document.getElementById('questionTextareas').querySelectorAll('textarea')).map(ta => ({
+                category: ta.dataset.category,
+                text: ta.value
+            })),
+            currentStep: currentStep
+        };
+        localStorage.setItem('applicationFormData', JSON.stringify(applicationFormData));
     }
 
     nextBtn.addEventListener('click', function() {
@@ -1861,40 +1890,45 @@ async function SetupApplyForOrderPage() {
     });
 
     function loadProgress() {
-        const savedData = localStorage.getItem('applicationFormData');
-        if (savedData) {
-            const data = JSON.parse(savedData);
-            Object.keys(data).forEach(key => {
-                const input = form.elements[key];
-                if (input) {
-                    input.value = data[key];
-                }
-            });
-            currentStep = data.currentStep || 0;
-            if (data.availability && data.availability.length > 0) {
-                initializeCalendar(); // Ensure calendar is initialized
-                const dates = data.availability.map(a => new Date(a.date));
+        const applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
+        if (applicationFormData) {
+            // Populate form fields with saved data
+            document.getElementById('applicantName').value = applicationFormData.applicantName || '';
+            document.getElementById('location').value = applicationFormData.location || '';
+    
+            // Availability
+            if (applicationFormData.availability && applicationFormData.availability.length > 0) {
+                initializeCalendar();
+                const dates = applicationFormData.availability.map(a => new Date(a.date));
                 calendar.setDate(dates);
                 updateAvailabilityList(dates);
-                data.availability.forEach((a, index) => {
-                    const listItem = document.querySelectorAll('#availabilityList li')[index];
-                    if (listItem) {
-                        const timeSelect = listItem.querySelector('.availability-time');
-                        if (timeSelect) timeSelect.value = a.time;
-                    }
-                });
             }
-            if (data.equipment) {
-                data.equipment.forEach(eq => {
+    
+            // Estimated completion
+            const estimatedCompletionSelect = document.getElementById('estimatedCompletion');
+            estimatedCompletionSelect.value = applicationFormData.estimated_completion || '';
+            if (estimatedCompletionSelect.value === 'custom') {
+                document.getElementById('customEstimatedTimeContainer').style.display = 'block';
+                document.getElementById('customEstimatedTime').value = applicationFormData.customEstimatedTime || '';
+            }
+    
+            // Introduction
+            document.getElementById('introduction').value = applicationFormData.introduction || '';
+            document.getElementById('introductionCharCount').textContent = applicationFormData.introduction ? applicationFormData.introduction.length : '0';
+    
+            // Equipment
+            if (applicationFormData.equipment) {
+                applicationFormData.equipment.forEach(eq => {
                     const checkbox = document.querySelector(`input[type="checkbox"][value="${eq}"]`);
                     if (checkbox) checkbox.checked = true;
                 });
             }
-            if (data.otherEquipment) {
-                document.getElementById('otherEquipment').value = data.otherEquipment;
-            }
-            if (data.questions) {
-                data.questions.forEach(q => {
+            document.getElementById('otherEquipment').value = applicationFormData.otherEquipment || '';
+    
+            // Questions
+            if (applicationFormData.questions) {
+                const questionTextareas = document.getElementById('questionTextareas');
+                applicationFormData.questions.forEach(q => {
                     const textarea = document.createElement('textarea');
                     textarea.className = 'form-control mt-2';
                     textarea.rows = 3;
@@ -1903,7 +1937,13 @@ async function SetupApplyForOrderPage() {
                     questionTextareas.appendChild(textarea);
                 });
             }
+    
+            // Set current step
+            currentStep = applicationFormData.currentStep || 0;
             showStep(currentStep);
+    
+            // Update progress bar
+            updateProgressBar();
         }
     }
 
@@ -2053,33 +2093,18 @@ async function SubmitApplication() {
         return;
     }
 
+    const applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
+
+    if (!applicationFormData || !applicationFormData.order_id) {
+        ShowErrorMessage('Invalid application data. Please try again.');
+        await FillTheBody('home');
+        return;
+    }
+
     if (!ValidateAvailability()) {
         ShowErrorMessage('최소 하나의 작업 가능 일정을 추가해주세요.');
         return;
     }
-
-    const estimatedCompletionSelect = document.getElementById('estimatedCompletion');
-    const customEstimatedTimeInput = document.getElementById('customEstimatedTime');
-    const estimatedCompletion = estimatedCompletionSelect.value === 'custom' 
-        ? parseInt(customEstimatedTimeInput.value) 
-        : estimatedCompletionSelect.value;
-
-    const equipmentChecked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-    const otherEquipment = document.getElementById('otherEquipment').value;
-    const questions = Array.from(document.getElementById('questionTextareas').querySelectorAll('textarea')).map(ta => ({
-        category: ta.dataset.category,
-        text: ta.value
-    }));
-
-    const applicationData = {
-        order_id: currentOrderId,
-        applicant_id: JSON.parse(localStorage.getItem('user')).user_id,
-        availability: GetAvailabilityData(),
-        estimated_completion: estimatedCompletion,
-        introduction: document.getElementById('introduction').value,
-        equipment: [...equipmentChecked, otherEquipment].filter(Boolean),
-        questions: questions
-    };
 
     try {
         ShowLoading();
@@ -2089,14 +2114,14 @@ async function SubmitApplication() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(applicationData)
+            body: JSON.stringify(applicationFormData)
         });
 
         const result = await response.json();
 
         if (response.ok) {
             ShowSuccessMessage('지원이 성공적으로 제출되었습니다.', 3000);
-            localStorage.removeItem('applicationFormData'); // Clear saved form data
+            localStorage.removeItem('applicationFormData');
             await FillTheBody('home');
         } else if (response.status === 400 && result.message === 'You have already applied to this order.') {
             ShowErrorMessage('이미 이 오더에 지원하셨습니다.');
