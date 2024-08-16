@@ -1893,6 +1893,9 @@ async function SetupApplyForOrderPage() {
             category: ta.dataset.category,
             text: ta.value
         }));
+        const availabilityHtml = GetAvailabilityData().map(slot => 
+            `<li>${slot.date} ${slot.time}</li>`
+        ).join('');
     
         previewContent.innerHTML = `
             <div class="preview-section">
@@ -1912,7 +1915,7 @@ async function SetupApplyForOrderPage() {
                 </h3>
                 <div class="preview-content">
                     <ul>
-                        ${GetAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('')}
+                        ${availabilityHtml}
                     </ul>
                 </div>
             </div>
