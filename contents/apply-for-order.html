@@ -103,15 +103,32 @@
             padding: 2px 8px;
         }
         #availabilityCalendar {
-            margin-bottom: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
         }
         #availabilityList {
             max-height: 300px;
             overflow-y: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #availabilityList .list-group-item {
+            border: none;
+            border-bottom: 1px solid #e9ecef;
+        }
+        #availabilityList .list-group-item:last-child {
+            border-bottom: none;
         }
         .availability-time {
             width: auto;
-            display: inline-block;
+            min-width: 100px;
+        }
+        @media (max-width: 767px) {
+            .col-md-6 {
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -149,17 +166,17 @@
 
                     <!-- Step 2: Availability -->
                     <div class="step" id="step2">
-                        <h2 class="mb-3">작업 가능 일정</h2>
+                        <h2 class="mb-4">작업 가능 일정</h2>
                         <div class="row">
                             <div class="col-md-6">
-                                <div id="availabilityCalendar"></div>
+                                <div id="availabilityCalendar" class="mb-4"></div>
                             </div>
                             <div class="col-md-6">
-                                <h4>선택된 날짜</h4>
+                                <h4 class="mb-3">선택된 날짜</h4>
                                 <ul id="availabilityList" class="list-group"></ul>
                             </div>
                         </div>
-                        <div id="availabilityError" class="invalid-feedback"></div>
+                        <div id="availabilityError" class="invalid-feedback mt-3"></div>
                     </div>
 
                     <!-- Step 3: Estimated Completion -->

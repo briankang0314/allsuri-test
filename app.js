@@ -1654,7 +1654,6 @@ async function SetupApplyForOrderPage() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
-    const addAvailabilityBtn = document.getElementById('addAvailabilityBtn');
     const backBtn = document.getElementById('back-btn');
 
     let currentStep = 0;
