@@ -1801,7 +1801,7 @@ async function SetupApplyForOrderPage() {
     
         // If "custom" is selected, use the custom time input
         if (estimatedCompletion === 'custom') {
-            customEstimatedTime = customEstimatedTime ? `${customEstimatedTime}시간` : null;
+            customEstimatedTime = customEstimatedTime ? `${customEstimatedTime}` : null;
             estimatedCompletion = null;
         } else {
             customEstimatedTime = null;
