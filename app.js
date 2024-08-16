@@ -1689,19 +1689,36 @@ async function SetupApplyForOrderPage() {
 
     function updateAvailabilityList(selectedDates) {
         const availabilityList = document.getElementById('availabilityList');
+        const existingSelections = Array.from(availabilityList.querySelectorAll('li')).reduce((acc, li) => {
+            const date = li.getAttribute('data-date');
+            const time = li.querySelector('.availability-time').value;
+            acc[date] = time;
+            return acc;
+        }, {});
+    
         availabilityList.innerHTML = '';
         selectedDates.forEach(date => {
+            const dateString = formatDate(date);
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-            listItem.innerHTML = `
-                ${formatDate(date)}
-                <select class="form-select availability-time" style="width: auto;">
-                    <option value="">시간대 선택</option>
-                    <option value="오전">오전</option>
-                    <option value="오후">오후</option>
-                    <option value="저녁">저녕</option>
-                </select>
+            listItem.setAttribute('data-date', dateString);
+            
+            const timeSelect = document.createElement('select');
+            timeSelect.className = 'form-select availability-time';
+            timeSelect.style.width = 'auto';
+            timeSelect.innerHTML = `
+                <option value="">시간대 선택</option>
+                <option value="오전">오전</option>
+                <option value="오후">오후</option>
+                <option value="저녁">저녁</option>
             `;
+            
+            if (existingSelections[dateString]) {
+                timeSelect.value = existingSelections[dateString];
+            }
+    
+            listItem.innerHTML = `${dateString}`;
+            listItem.appendChild(timeSelect);
             availabilityList.appendChild(listItem);
         });
         saveProgress();
@@ -1836,11 +1853,15 @@ async function SetupApplyForOrderPage() {
             currentStep = data.currentStep || 0;
             if (data.availability && data.availability.length > 0) {
                 initializeCalendar(); // Ensure calendar is initialized
-                calendar.setDate(data.availability.map(a => a.date));
-                updateAvailabilityList(data.availability.map(a => new Date(a.date)));
+                const dates = data.availability.map(a => new Date(a.date));
+                calendar.setDate(dates);
+                updateAvailabilityList(dates);
                 data.availability.forEach((a, index) => {
-                    const timeSelect = document.querySelectorAll('.availability-time')[index];
-                    if (timeSelect) timeSelect.value = a.time;
+                    const listItem = document.querySelectorAll('#availabilityList li')[index];
+                    if (listItem) {
+                        const timeSelect = listItem.querySelector('.availability-time');
+                        if (timeSelect) timeSelect.value = a.time;
+                    }
                 });
             }
             if (data.equipment) {
@@ -1894,9 +1915,7 @@ async function SetupApplyForOrderPage() {
             category: ta.dataset.category,
             text: ta.value
         }));
-        const availabilityHtml = GetAvailabilityData().map(slot => 
-            `<li>${slot.date} ${slot.time}</li>`
-        ).join('');
+        const availabilityHtml = GetAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('');
     
         previewContent.innerHTML = `
             <div class="preview-section">
@@ -2001,9 +2020,9 @@ function ValidateAvailability() {
 function GetAvailabilityData() {
     const availabilityList = document.getElementById('availabilityList');
     return Array.from(availabilityList.querySelectorAll('li')).map(slot => ({
-        date: slot.textContent.split(' ')[0],
+        date: slot.getAttribute('data-date'),
         time: slot.querySelector('.availability-time').value
-    }));
+    })).filter(slot => slot.time !== ''); // Only include slots with selected times
 }
 
 async function SubmitApplication() {
