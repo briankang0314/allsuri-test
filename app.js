@@ -1794,32 +1794,43 @@ async function SetupApplyForOrderPage() {
     }
 
     function saveProgress() {
-        const formData = new FormData(document.getElementById('applicationForm'));
         const storedData = JSON.parse(localStorage.getItem('applicationFormData'));
         
+        let estimatedCompletion = estimatedCompletionSelect.value;
+        let customEstimatedTime = customEstimatedTimeInput.value;
+    
+        // If "custom" is selected, use the custom time input
+        if (estimatedCompletion === 'custom') {
+            customEstimatedTime = customEstimatedTime ? `${customEstimatedTime}시간` : null;
+            estimatedCompletion = null;
+        } else {
+            customEstimatedTime = null;
+        }
+    
         applicationFormData = {
             ...storedData,
             applicantName: document.getElementById('applicantName').value,
             location: document.getElementById('location').value,
             availability: GetAvailabilityData(),
-            estimated_completion: formData.get('estimatedCompletion'),
-            customEstimatedTime: formData.get('customEstimatedTime'),
-            introduction: document.getElementById('introduction').value,
+            estimated_completion: estimatedCompletion,
+            customEstimatedTime: customEstimatedTime,
+            introduction: introductionTextarea.value,
             equipment: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
             otherEquipment: document.getElementById('otherEquipment').value,
-            questions: Array.from(document.getElementById('questionTextareas').querySelectorAll('textarea')).map(ta => ({
+            questions: Array.from(questionTextareas.querySelectorAll('textarea')).map(ta => ({
                 category: ta.dataset.category,
                 text: ta.value
             })),
             currentStep: currentStep
         };
-
+    
+        // Ensure that empty string values are stored as null
         for (let key in applicationFormData) {
             if (applicationFormData[key] === '') {
                 applicationFormData[key] = null;
             }
         }
-
+    
         localStorage.setItem('applicationFormData', JSON.stringify(applicationFormData));
         console.log('Saved application form data:', applicationFormData);
     }
@@ -1872,6 +1883,7 @@ async function SetupApplyForOrderPage() {
             customEstimatedTimeInput.required = false;
             customEstimatedTimeInput.value = '';
         }
+        saveProgress();
     });
 
     introductionTextarea.addEventListener('input', function() {
@@ -1915,9 +1927,10 @@ async function SetupApplyForOrderPage() {
             // Estimated completion
             const estimatedCompletionSelect = document.getElementById('estimatedCompletion');
             estimatedCompletionSelect.value = applicationFormData.estimated_completion || '';
-            if (estimatedCompletionSelect.value === 'custom') {
-                document.getElementById('customEstimatedTimeContainer').style.display = 'block';
-                document.getElementById('customEstimatedTime').value = applicationFormData.customEstimatedTime || '';
+            if (estimatedCompletionSelect.value === 'custom' || !estimatedCompletionSelect.value) {
+                customEstimatedTimeContainer.style.display = 'block';
+                const customEstimatedTime = applicationFormData.customEstimatedTime;
+                customEstimatedTimeInput.value = customEstimatedTime ? customEstimatedTime.replace('시간', '') : '';
             }
     
             // Introduction
