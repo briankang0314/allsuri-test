@@ -276,6 +276,8 @@ async function FillTheBody(contentName) {
 
 
 
+
+
 // Backend API Requests
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function MakeAuthenticatedRequest(url, options = {}) {
@@ -304,6 +306,9 @@ async function MakeAuthenticatedRequest(url, options = {}) {
         throw error;
     }
 }
+
+
+
 
 
 
@@ -1113,29 +1118,44 @@ function InitializeAnimations() {
 // Edit Profile Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function SetupEditProfilePage() {
-    const backBtn = document.getElementById('back-btn');
-    if (backBtn) {
-        backBtn.addEventListener('click', () => FillTheBody('my-profile'));
-    }
+    try {
+        console.log("Starting SetupEditProfilePage");
 
-    const saveProfileChangesBtn = document.getElementById('btn-save-profile');
-    if (saveProfileChangesBtn) {
-        saveProfileChangesBtn.addEventListener('click', SaveProfileChanges);
-    }
+        const backBtn = document.getElementById('back-btn');
+        console.log("Back button found:", !!backBtn);
+        if (backBtn) {
+            backBtn.addEventListener('click', () => FillTheBody('my-profile'));
+        }
 
-    const phoneInput = document.getElementById('editPhone');
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function (e) {
-            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,4})(\d{0,4})/);
-            e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '');
-        });
-    }
+        const saveProfileChangesBtn = document.getElementById('btn-save-profile');
+        console.log("Save button found:", !!saveProfileChangesBtn);
+        if (saveProfileChangesBtn) {
+            saveProfileChangesBtn.addEventListener('click', SaveProfileChanges);
+        }
 
-    const profile = await FetchUserProfile();
-    if (profile) {
-        PopulateEditProfileForm(profile);
-    } else {
-        ShowErrorMessage('프로필 정보를 불러오는데 실패했습니다.');
+        const phoneInput = document.getElementById('editPhone');
+        console.log("Phone input found:", !!phoneInput);
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function (e) {
+                let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,4})(\d{0,4})/);
+                e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '');
+            });
+        }
+
+        console.log("Fetching user profile");
+        const profile = await FetchUserProfile();
+        console.log("Profile fetched:", !!profile);
+
+        if (profile) {
+            console.log("Populating edit profile form");
+            PopulateEditProfileForm(profile);
+        } else {
+            console.log("Profile fetch failed");
+            ShowErrorMessage('프로필 정보를 불러오는데 실패했습니다.');
+        }
+    } catch (error) {
+        console.error("Error in SetupEditProfilePage:", error);
+        ShowErrorMessage('edit-profile 페이지 로딩 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
 }
 
@@ -1679,6 +1699,7 @@ async function SetupApplyForOrderPage() {
                 inline: true,
                 mode: "multiple",
                 dateFormat: "Y-m-d",
+                locale: "ko",
                 onChange: function(selectedDates, dateStr, instance) {
                     updateAvailabilityList(selectedDates);
                 }
