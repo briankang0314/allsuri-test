@@ -166,15 +166,6 @@ let currentOrderId = null;
 
 
 
-
-
-
-
-
-
-
-
-
 // Dynamic Content Loading
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function FillTheBody(contentName) {
@@ -401,6 +392,8 @@ function IsRefreshTokenNearExpiration() {
 
     return refreshTokenExpiresAt < oneMonthFromNow;
 }
+
+
 
 
 
@@ -1482,7 +1475,6 @@ async function DeleteOrder(orderId) {
         return;
     }
 
-    
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/DeleteOrder', {
             method: 'POST',
@@ -1511,6 +1503,8 @@ async function DeleteOrder(orderId) {
         
     }
 }
+
+
 
 
 
@@ -1638,14 +1632,21 @@ async function SubmitOrder(event) {
 
 
 
+
+
+
 // Apply For Order Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function SetupApplyForOrderPage() {
+async function loadUserProfile() {
     const profile = await FetchUserProfile();
     if (profile) {
         document.getElementById('applicantName').value = profile.nickname || '';
         document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
     }
+}
+
+async function SetupApplyForOrderPage() {
+    await loadUserProfile();
 
     const form = document.getElementById('applicationForm');
     const steps = document.querySelectorAll('.step');
@@ -1657,6 +1658,7 @@ async function SetupApplyForOrderPage() {
     const backBtn = document.getElementById('back-btn');
 
     let currentStep = 0;
+    let calendar;
 
     function showStep(step) {
         steps.forEach((s, index) => {
@@ -1665,9 +1667,49 @@ async function SetupApplyForOrderPage() {
         updateProgressBar();
         updateButtons();
     
-        if (step === steps.length - 1) {
+        if (step === 1) {
+            initializeCalendar();
+        } else if (step === steps.length - 1) {
             updatePreview();
         }
+    }
+
+    function initializeCalendar() {
+        if (!calendar) {
+            calendar = flatpickr("#availabilityCalendar", {
+                inline: true,
+                mode: "multiple",
+                dateFormat: "Y-m-d",
+                onChange: function(selectedDates, dateStr, instance) {
+                    updateAvailabilityList(selectedDates);
+                }
+            });
+        }
+    }
+
+    function updateAvailabilityList(selectedDates) {
+        const availabilityList = document.getElementById('availabilityList');
+        availabilityList.innerHTML = '';
+        selectedDates.forEach(date => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            listItem.innerHTML = `
+                ${formatDate(date)}
+                <select class="form-select availability-time" style="width: auto;">
+                    <option value="">시간대 선택</option>
+                    <option value="오전">오전</option>
+                    <option value="오후">오후</option>
+                    <option value="저녁">저녁</option>
+                </select>
+            `;
+            availabilityList.appendChild(listItem);
+        });
+        saveProgress();
+    }
+
+    function formatDate(date) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString('ko-KR', options);
     }
 
     function updateProgressBar() {
@@ -1708,39 +1750,6 @@ async function SetupApplyForOrderPage() {
         }));
         localStorage.setItem('applicationFormData', JSON.stringify(data));
     }
-    
-    function addAvailabilitySlot() {
-        const container = document.getElementById('availabilityContainer');
-        const slotHtml = `
-            <div class="availability-slot mb-2">
-                <div class="row">
-                    <div class="col-md-5 mb-2">
-                        <input type="date" class="form-control availability-date" required>
-                    </div>
-                    <div class="col-md-5 mb-2">
-                        <select class="form-select availability-time" required>
-                            <option value="">시간대 선택</option>
-                            <option value="오전">오전</option>
-                            <option value="오후">오후</option>
-                            <option value="저녁">저녁</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <button type="button" class="btn btn-danger btn-sm remove-slot">삭제</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', slotHtml);
-    
-        const removeBtn = container.lastElementChild.querySelector('.remove-slot');
-        removeBtn.addEventListener('click', function() {
-            this.closest('.availability-slot').remove();
-            saveProgress();
-        });
-    
-        saveProgress();
-    }
 
     nextBtn.addEventListener('click', function() {
         if (validateStep(currentStep)) {
@@ -1760,8 +1769,6 @@ async function SetupApplyForOrderPage() {
             showStep(currentStep);
         }
     });
-
-    addAvailabilityBtn.addEventListener('click', addAvailabilitySlot);
 
     backBtn.addEventListener('click', () => FillTheBody('home'));
 
@@ -1828,7 +1835,12 @@ async function SetupApplyForOrderPage() {
             });
             currentStep = data.currentStep || 0;
             if (data.availability) {
-                data.availability.forEach(addAvailabilitySlot);
+                calendar.setDate(data.availability.map(a => a.date));
+                updateAvailabilityList(data.availability.map(a => new Date(a.date)));
+                data.availability.forEach((a, index) => {
+                    const timeSelect = document.querySelectorAll('.availability-time')[index];
+                    if (timeSelect) timeSelect.value = a.time;
+                });
             }
             if (data.equipment) {
                 data.equipment.forEach(eq => {
@@ -1954,24 +1966,23 @@ async function SetupApplyForOrderPage() {
 }
 
 function ValidateAvailability() {
-    const availabilityContainer = document.getElementById('availabilityContainer');
-    const availabilitySlots = availabilityContainer.querySelectorAll('.availability-slot');
+    const availabilityList = document.getElementById('availabilityList');
+    const availabilitySlots = availabilityList.querySelectorAll('li');
     const errorElement = document.getElementById('availabilityError');
 
     if (availabilitySlots.length === 0) {
-        errorElement.textContent = '최소 하나의 작업 가능 일정을 추가해주세요.';
+        errorElement.textContent = '최소 하나의 작업 가능 일정을 선택해주세요.';
         errorElement.style.display = 'block';
         return false;
     }
 
     let isValid = true;
     availabilitySlots.forEach((slot, index) => {
-        const dateInput = slot.querySelector('.availability-date');
-        const timeInput = slot.querySelector('.availability-time');
+        const timeSelect = slot.querySelector('.availability-time');
 
-        if (!dateInput.value || !timeInput.value) {
+        if (!timeSelect.value) {
             isValid = false;
-            errorElement.textContent = `${index + 1}번째 일정의 날짜와 시간을 모두 선택해주세요.`;
+            errorElement.textContent = `${index + 1}번째 일정의 시간을 선택해주세요.`;
             errorElement.style.display = 'block';
         }
     });
@@ -1984,8 +1995,9 @@ function ValidateAvailability() {
 }
 
 function GetAvailabilityData() {
-    return Array.from(document.querySelectorAll('.availability-slot')).map(slot => ({
-        date: slot.querySelector('.availability-date').value,
+    const availabilityList = document.getElementById('availabilityList');
+    return Array.from(availabilityList.querySelectorAll('li')).map(slot => ({
+        date: slot.textContent.split(' ')[0],
         time: slot.querySelector('.availability-time').value
     }));
 }
