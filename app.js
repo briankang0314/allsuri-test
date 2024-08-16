@@ -1658,30 +1658,26 @@ async function SubmitOrder(event) {
 
 // Apply For Order Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function loadUserProfile() {
-    const profile = await FetchUserProfile();
-    if (profile) {
-        document.getElementById('applicantName').value = profile.nickname || '';
-        document.getElementById('location').value = `${profile.region || ''} ${profile.city || ''}`.trim() || '정보 없음';
-    }
-}
-
 function InitializeApplicationForm(orderId) {
+    const user = JSON.parse(localStorage.getItem('user'));
     let applicationFormData = {
         order_id: orderId,
-        applicant_id: JSON.parse(localStorage.getItem('user')).user_id,
+        applicant_id: user.user_id,
+        applicantName: user.nickname || '',
+        location: `${user.region || ''} ${user.city || ''}`.trim() || '',
         availability: [],
         estimated_completion: '',
+        customEstimatedTime: '',
         introduction: '',
         equipment: [],
-        questions: []
+        otherEquipment: '',
+        questions: [],
+        currentStep: 0
     };
     localStorage.setItem('applicationFormData', JSON.stringify(applicationFormData));
 }
 
 async function SetupApplyForOrderPage() {
-    await loadUserProfile();
-
     let applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
 
     if (!applicationFormData || !applicationFormData.order_id) {
