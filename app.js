@@ -1604,7 +1604,7 @@ async function SetupOrderApplicationsPage(params) {
     if (orderInfoSection) {
         console.log('Updating order info section');
         orderInfoSection.innerHTML = `
-            <div class="card mb-4 order-info-card">
+            <div class="card order-info-card">
                 <div class="card-body">
                     <h5 class="card-title">${order.title || 'No Title'}</h5>
                     <h6 class="card-subtitle mb-2 text-muted">${order.location || 'No Location'}</h6>
