@@ -1723,9 +1723,10 @@ async function SetupApplyForOrderPage() {
                     updateAvailabilityList(selectedDates);
                 },
                 onReady: function(selectedDates, dateStr, instance) {
-                    // Remove the calendar element from the DOM
+                    // Remove the readonly attribute and the flatpickr-input class
                     const calendarElement = instance.input;
-                    calendarElement.parentNode.removeChild(calendarElement);
+                    calendarElement.removeAttribute("readonly");
+                    calendarElement.classList.remove("flatpickr-input");
                 }
             });
         }
