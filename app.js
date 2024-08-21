@@ -2348,7 +2348,6 @@ async function SubmitOrder(event) {
 
 // Apply For Order Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function cleanupApplicationFormData() {
     localStorage.removeItem('applicationFormData');
 }
@@ -2362,7 +2361,6 @@ function InitializeApplicationForm(orderId) {
         location: `${user.region || ''} ${user.city || ''}`.trim() || '',
         availability: [],
         estimated_completion: '',
-        customEstimatedTime: '',
         introduction: '',
         equipment: [],
         otherEquipment: '',
@@ -2504,15 +2502,6 @@ async function SetupApplyForOrderPage() {
         const storedData = JSON.parse(localStorage.getItem('applicationFormData'));
         
         let estimatedCompletion = estimatedCompletionSelect.value;
-        let customEstimatedTime = customEstimatedTimeInput.value;
-    
-        // If "custom" is selected, use the custom time input
-        if (estimatedCompletion === 'custom') {
-            customEstimatedTime = customEstimatedTime ? `${customEstimatedTime}` : null;
-            estimatedCompletion = null;
-        } else {
-            customEstimatedTime = null;
-        }
     
         applicationFormData = {
             ...storedData,
@@ -2520,7 +2509,6 @@ async function SetupApplyForOrderPage() {
             location: document.getElementById('location').value,
             availability: GetAvailabilityData(),
             estimated_completion: estimatedCompletion,
-            customEstimatedTime: customEstimatedTime,
             introduction: introductionTextarea.value,
             equipment: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
             otherEquipment: document.getElementById('otherEquipment').value,
@@ -2539,7 +2527,7 @@ async function SetupApplyForOrderPage() {
         }
     
         localStorage.setItem('applicationFormData', JSON.stringify(applicationFormData));
-        console.log('Saved application form data:', applicationFormData);
+        // console.log('Saved application form data:', applicationFormData);
     }
 
     nextBtn.addEventListener('click', function() {
@@ -2579,24 +2567,10 @@ async function SetupApplyForOrderPage() {
 
     // New event listeners for improved form elements
     const estimatedCompletionSelect = document.getElementById('estimatedCompletion');
-    const customEstimatedTimeContainer = document.getElementById('customEstimatedTimeContainer');
-    const customEstimatedTimeInput = document.getElementById('customEstimatedTime');
     const introductionTextarea = document.getElementById('introduction');
     const introductionCharCount = document.getElementById('introductionCharCount');
     const questionCategory = document.getElementById('questionCategory');
     const questionTextareas = document.getElementById('questionTextareas');
-
-    estimatedCompletionSelect.addEventListener('change', function() {
-        if (this.value === 'custom') {
-            customEstimatedTimeContainer.style.display = 'block';
-            customEstimatedTimeInput.required = true;
-        } else {
-            customEstimatedTimeContainer.style.display = 'none';
-            customEstimatedTimeInput.required = false;
-            customEstimatedTimeInput.value = '';
-        }
-        saveProgress();
-    });
 
     introductionTextarea.addEventListener('input', function() {
         const currentLength = this.value.length;
@@ -2639,11 +2613,6 @@ async function SetupApplyForOrderPage() {
             // Estimated completion
             const estimatedCompletionSelect = document.getElementById('estimatedCompletion');
             estimatedCompletionSelect.value = applicationFormData.estimated_completion || '';
-            if (estimatedCompletionSelect.value === 'custom' || !estimatedCompletionSelect.value) {
-                customEstimatedTimeContainer.style.display = 'block';
-                const customEstimatedTime = applicationFormData.customEstimatedTime;
-                customEstimatedTimeInput.value = customEstimatedTime ? customEstimatedTime.replace('시간', '') : '';
-            }
     
             // Introduction
             document.getElementById('introduction').value = applicationFormData.introduction || '';
@@ -2703,7 +2672,6 @@ async function SetupApplyForOrderPage() {
         const applicantName = document.getElementById('applicantName').value;
         const location = document.getElementById('location').value;
         const estimatedCompletion = document.getElementById('estimatedCompletion').value;
-        const customEstimatedTime = document.getElementById('customEstimatedTime').value;
         const introduction = document.getElementById('introduction').value;
         const equipmentChecked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
         const otherEquipment = document.getElementById('otherEquipment').value;
@@ -2734,7 +2702,7 @@ async function SetupApplyForOrderPage() {
                 <h5 class="mb-3"><i class="bi bi-person-circle me-2"></i>${applicantName}</h5>
                 <div class="d-flex align-items-center mb-2">
                     <span class="me-3"><strong>지역:</strong> ${location}</span>
-                    <span><strong>예상 완료 시간:</strong> ${estimatedCompletion === 'custom' ? `${customEstimatedTime}시간` : estimatedCompletion}</span>
+                    <span><strong>예상 완료 시간:</strong> ${estimatedCompletion}</span>
                 </div>
             </div>
     
