@@ -2376,7 +2376,7 @@ async function AcceptApplication(applicationId) {
         return;
     }
 
-    
+    ShowLoading();
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/AcceptApplication', {
             method: 'POST',
@@ -2391,6 +2391,11 @@ async function AcceptApplication(applicationId) {
 
         if (!response.ok) {
             throw new Error('Failed to accept application');
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to accept application');
         }
 
         ShowSuccessMessage('지원서가 성공적으로 수락되었습니다.', 3000);
@@ -2410,7 +2415,7 @@ async function AcceptApplication(applicationId) {
         console.error('Error accepting application:', error);
         ShowErrorMessage('지원서 수락 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        
+        HideLoading();
     }
 }
 
@@ -2419,7 +2424,7 @@ async function RejectApplication(applicationId) {
         return;
     }
 
-    
+    ShowLoading();
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/RejectApplication', {
             method: 'POST',
@@ -2436,26 +2441,23 @@ async function RejectApplication(applicationId) {
             throw new Error('Failed to reject application');
         }
 
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to reject application');
+        }
+
         ShowSuccessMessage('지원서가 성공적으로 거절되었습니다.', 3000);
         
         // Update the UI to reflect the rejected application
         UpdateApplicationStatus(applicationId, 'rejected');
         
-        // Close all modals
-        CloseAllModals();
-        
-        try {
-            // Refresh the applications list
-            await FetchAndDisplayApplications(currentOrderId);
-        } catch (error) {
-            console.error('Error refreshing applications:', error);
-            ShowErrorMessage('지원서 목록을 새로고치는 중 오류가 발생했습니다.');
-        }
+        // Refresh the applications list
+        await FetchAndDisplayApplications(currentOrderId);
     } catch (error) {
         console.error('Error rejecting application:', error);
         ShowErrorMessage('지원서 거절 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        
+        HideLoading();
     }
 }
 
