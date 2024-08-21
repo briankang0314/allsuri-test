@@ -1750,54 +1750,49 @@ function ShowApplicationDetails(application) {
     }
 
     const availabilityHtml = application.availability.map(slot => {
-        return `<li class="list-group-item">${slot.date} ${slot.time}</li>`;
+        return `<div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-clock me-2"></i>
+                    <span>${slot.date} ${slot.time}</span>
+                </div>`;
     }).join('');
 
-    const equipmentHtml = application.equipment.map(eq => `<span class="badge bg-secondary me-1">${eq}</span>`).join('') + 
-        (application.otherEquipment ? `<span class="badge bg-secondary">${application.otherEquipment}</span>` : '');
+    const equipmentHtml = application.equipment.map(eq => `<span class="badge bg-light text-dark me-2 mb-2">${eq}</span>`).join('') + 
+        (application.otherEquipment ? `<span class="badge bg-light text-dark me-2 mb-2">${application.otherEquipment}</span>` : '');
 
     const questionsHtml = application.questions.map(q => `
         <div class="mb-3">
-            <strong class="d-block mb-1">${q.category}:</strong>
-            <p class="mb-0">${q.text}</p>
+            <strong class="d-block mb-1">${q.category}</strong>
+            <p class="mb-0 text-muted">${q.text}</p>
         </div>
     `).join('');
 
     modalBody.innerHTML = `
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title">지원자: ${application.applicant_name}</h5>
-                <p class="card-text"><strong>상태:</strong> <span class="badge ${GetStatusClass(application.status)}">${GetStatusText(application.status)}</span></p>
-                <p class="card-text"><strong>예상 완료 시간:</strong> ${application.estimated_completion}</p>
+        <div class="mb-4">
+            <h5 class="mb-3"><i class="bi bi-person-circle me-2"></i>${application.applicant_name}</h5>
+            <div class="d-flex align-items-center mb-2">
+                <span class="me-3"><strong>상태:</strong> <span class="badge ${GetStatusClass(application.status)}">${GetStatusText(application.status)}</span></span>
+                <span><strong>예상 완료 시간:</strong> ${application.estimated_completion}</span>
             </div>
         </div>
 
-        <div class="card mb-3">
-            <div class="card-body">
-                <h6 class="card-title">소개</h6>
-                <p class="card-text">${application.introduction}</p>
-            </div>
+        <div class="mb-4">
+            <h6 class="mb-3"><i class="bi bi-card-text me-2"></i>소개</h6>
+            <p class="text-muted">${application.introduction}</p>
         </div>
 
-        <div class="card mb-3">
-            <div class="card-body">
-                <h6 class="card-title">보유 장비</h6>
-                <p class="card-text">${equipmentHtml}</p>
-            </div>
+        <div class="mb-4">
+            <h6 class="mb-3"><i class="bi bi-tools me-2"></i>보유 장비</h6>
+            <div>${equipmentHtml}</div>
         </div>
 
-        <div class="card mb-3">
-            <div class="card-body">
-                <h6 class="card-title">가능한 시간</h6>
-                <ul class="list-group list-group-flush">${availabilityHtml}</ul>
-            </div>
+        <div class="mb-4">
+            <h6 class="mb-3"><i class="bi bi-calendar-check me-2"></i>가능한 시간</h6>
+            ${availabilityHtml}
         </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h6 class="card-title">질문</h6>
-                ${questionsHtml}
-            </div>
+        <div>
+            <h6 class="mb-3"><i class="bi bi-chat-left-text me-2"></i>질문</h6>
+            ${questionsHtml}
         </div>
     `;
 
