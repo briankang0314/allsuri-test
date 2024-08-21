@@ -260,6 +260,9 @@ async function FillTheBody(contentName) {
                 case 'my-orders':
                     await SetupMyOrdersPage();
                     break;
+                case 'my-applications':
+                    await SetupMyApplicationsPage();
+                    break;
                 // case 'user-login-info':
                 //     SetupUserLoginInfoPage();
                 //     break;
@@ -846,7 +849,6 @@ function HandleDropdownItemClick(e) {
     }
 
     // Handle the click action
-    
     try {
         switch (href) {
             case '#profile':
@@ -855,6 +857,9 @@ function HandleDropdownItemClick(e) {
             case '#my-orders':
                 FillTheBody('my-orders');
                 break;
+            case '#my-applications':
+                FillTheBody('my-applications');  // New case for My Applications
+                break;
             case '#logout':
                 Logout();
                 break;
@@ -862,8 +867,6 @@ function HandleDropdownItemClick(e) {
     } catch (error) {
         console.error('Error handling dropdown item click:', error);
         ShowErrorMessage('오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
-        
     }
 }
 
@@ -2201,7 +2204,8 @@ async function FetchAndDisplayApplications(orderId) {
         return;
     }
 
-    
+    ShowLoading();
+
     try {
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrderApplications', {
             method: 'POST',
@@ -2218,8 +2222,8 @@ async function FetchAndDisplayApplications(orderId) {
         const result = await response.json();
         console.log('API Response:', result);
 
-        if (!result.applications || !Array.isArray(result.applications)) {
-            throw new Error('Invalid response format: applications array not found');
+        if (!result.success || !result.applications || !Array.isArray(result.applications)) {
+            throw new Error('Invalid response format: applications array not found or request unsuccessful');
         }
 
         // Fetch the current order status
@@ -2234,7 +2238,7 @@ async function FetchAndDisplayApplications(orderId) {
         console.error('Error fetching order applications:', error);
         ShowErrorMessage('지원서를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-        
+        HideLoading();
     }
 }
 
@@ -2282,17 +2286,17 @@ function DisplayApplicationList(applications, orderStatus) {
         applicationElement.setAttribute('data-application-id', application.application_id);
         applicationElement.innerHTML = `
             <h5>${application.applicant_name || '이름 없음'}</h5>
-            <p>예상 완료 시간: ${application.estimated_completion} 시간</p>
-            <p>상태: <span class="badge ${application.status === 'rejected' ? 'bg-danger' : 'bg-secondary'} application-status">${application.status === 'rejected' ? '거절됨' : '대기중'}</span></p>
+            <p>예상 완료 시간: ${application.estimated_completion}</p>
+            <p>상태: <span class="badge ${application.status === 'rejected' ? 'bg-danger' : application.status === 'accepted' ? 'bg-success' : 'bg-secondary'} application-status">${GetStatusText(application.status)}</span></p>
             <button class="btn btn-primary btn-sm view-application">상세 보기</button>
-            <button class="btn btn-success btn-sm accept-application" ${isOrderClosed || application.status === 'rejected' ? 'disabled' : ''}>수락</button>
-            <button class="btn btn-danger btn-sm reject-application" ${isOrderClosed || application.status === 'rejected' ? 'disabled' : ''}>거절</button>
+            <button class="btn btn-success btn-sm accept-application" ${isOrderClosed || application.status !== 'pending' ? 'disabled' : ''}>수락</button>
+            <button class="btn btn-danger btn-sm reject-application" ${isOrderClosed || application.status !== 'pending' ? 'disabled' : ''}>거절</button>
         `;
         container.appendChild(applicationElement);
 
         // Add event listeners
         applicationElement.querySelector('.view-application').addEventListener('click', () => ShowApplicationDetails(application));
-        if (!isOrderClosed && application.status !== 'rejected') {
+        if (!isOrderClosed && application.status === 'pending') {
             applicationElement.querySelector('.accept-application').addEventListener('click', () => AcceptApplication(application.application_id));
             applicationElement.querySelector('.reject-application').addEventListener('click', () => RejectApplication(application.application_id));
         }
@@ -2300,7 +2304,7 @@ function DisplayApplicationList(applications, orderStatus) {
 
     // Add event listener for "Reject All" button
     if (rejectAllBtn) {
-        if (isOrderClosed || applications.every(app => app.status === 'rejected')) {
+        if (isOrderClosed || applications.every(app => app.status !== 'pending')) {
             rejectAllBtn.style.display = 'none';
         } else {
             rejectAllBtn.style.display = 'block';
@@ -2311,8 +2315,6 @@ function DisplayApplicationList(applications, orderStatus) {
 }
 
 function ShowApplicationDetails(application) {
-    // console.log('Showing details for application:', application);
-
     const modalBody = document.getElementById('applicationDetailsModalBody');
     if (!modalBody) {
         console.error('Application details modal body not found');
@@ -2324,30 +2326,48 @@ function ShowApplicationDetails(application) {
         return `<li>${slot.date} ${slot.time}</li>`;
     }).join('');
 
+    const equipmentHtml = application.equipment.join(', ') + (application.otherEquipment ? `, ${application.otherEquipment}` : '');
+    const questionsHtml = application.questions.map(q => `<p><strong>${q.category}:</strong> ${q.text}</p>`).join('');
+
     modalBody.innerHTML = `
         <h5>지원자: ${application.applicant_name}</h5>
-        <p><strong>예상 완료 시간:</strong> ${application.estimated_completion}시간</p>
+        <p><strong>상태:</strong> <span class="badge ${GetStatusClass(application.status)}">${GetStatusText(application.status)}</span></p>
+        <p><strong>예상 완료 시간:</strong> ${application.estimated_completion}</p>
         <p><strong>소개:</strong> ${application.introduction}</p>
-        <p><strong>보유 장비:</strong> ${application.resources}</p>
-        <p><strong>질문:</strong> ${application.questions}</p>
+        <p><strong>보유 장비:</strong> ${equipmentHtml}</p>
         <h6>가능한 시간:</h6>
-        <ul>
-            ${availabilityHtml}
-        </ul>
+        <ul>${availabilityHtml}</ul>
+        <h6>질문:</h6>
+        ${questionsHtml}
     `;
-    // console.log('Application details modal body:', modalBody);
 
     const applicationDetailsModal = new bootstrap.Modal(document.getElementById('applicationDetailsModal'));
-    // console.log('Showing application details modal');
     applicationDetailsModal.show();
 
     // Hide the application list modal
     const applicationListModal = bootstrap.Modal.getInstance(document.getElementById('applicationListModal'));
-    // console.log('Hiding application list modal');
     if (applicationListModal) {
         applicationListModal.hide();
     } else {
         console.warn('Application list modal instance not found');
+    }
+}
+
+function GetStatusText(status) {
+    switch (status) {
+        case 'pending': return '대기중';
+        case 'accepted': return '수락됨';
+        case 'rejected': return '거절됨';
+        default: return '알 수 없음';
+    }
+}
+
+function GetStatusClass(status) {
+    switch (status) {
+        case 'pending': return 'bg-secondary';
+        case 'accepted': return 'bg-success';
+        case 'rejected': return 'bg-danger';
+        default: return 'bg-secondary';
     }
 }
 

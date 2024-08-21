@@ -70,7 +70,7 @@ def check_existing_application(user_id, order_id):
     logger.info(f"Checking existing application for user_id: {user_id}, order_id: {order_id}")
     try:
         response = applications_table.query(
-            IndexName='UserOrderIndex',  # You'll need to create this GSI
+            IndexName='UserOrderIndex',
             KeyConditionExpression=Key('applicant_id').eq(user_id) & Key('order_id').eq(order_id),
             Limit=1
         )
@@ -128,14 +128,22 @@ def create_application(user_id, application_data):
         application_id = str(uuid.uuid4())
         current_time = datetime.now().isoformat()
         
+        # Process estimated completion time
+        estimated_completion = application_data['estimated_completion']
+        if estimated_completion == 'custom':
+            estimated_completion = application_data['customEstimatedTime']
+        
         item = {
             'application_id': application_id,
             'order_id': application_data['order_id'],
             'applicant_id': user_id,
+            'applicantName': application_data['applicantName'],
+            'location': application_data['location'],
             'availability': application_data['availability'],
-            'estimated_completion': application_data['estimated_completion'],
+            'estimated_completion': estimated_completion,
             'introduction': application_data['introduction'],
-            'resources': application_data['resources'],
+            'equipment': application_data['equipment'],
+            'otherEquipment': application_data.get('otherEquipment', ''),
             'questions': application_data['questions'],
             'status': 'pending',
             'created_at': current_time,
