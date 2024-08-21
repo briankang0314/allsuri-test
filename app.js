@@ -168,7 +168,7 @@ let currentOrderId = null;
 
 // Dynamic Content Loading
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function FillTheBody(contentName) {
+async function FillTheBody(contentName, params = {}) {
     try {
         if (contentName === 'my-profile') {
             const profile = await FetchUserProfile();
@@ -259,6 +259,9 @@ async function FillTheBody(contentName) {
                     break;
                 case 'my-orders':
                     await SetupMyOrdersPage();
+                    break;
+                case 'order-applications':
+                    await SetupOrderApplicationsPage(params);
                     break;
                 case 'my-applications':
                     await SetupMyApplicationsPage();
@@ -1481,7 +1484,13 @@ function ShowMyOrderDetails(order) {
 
     const viewApplicationsBtn = document.getElementById('btn-view-applications');
     if (viewApplicationsBtn) {
-        viewApplicationsBtn.onclick = () => FetchAndDisplayApplications(order.order_id);
+        viewApplicationsBtn.onclick = () => {
+            // Close the current modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
+            modal.hide();
+            // Navigate to the new applications page
+            FillTheBody('order-applications', { orderId: order.order_id });
+        };
     }
 
     const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
@@ -1525,6 +1534,342 @@ async function DeleteOrder(orderId) {
         ShowErrorMessage(error.message || '오더 삭제 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
         
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+// Order Applications Page
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function SetupOrderApplicationsPage(params) {
+    if (!params || !params.order) {
+        ShowErrorMessage('Invalid order information');
+        await FillTheBody('my-orders');
+        return;
+    }
+
+    const order = params.order;
+    currentOrderId = order.order_id;
+
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => FillTheBody('my-orders'));
+    }
+
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => FetchAndDisplayApplications(currentOrderId));
+    }
+
+    // Display order info
+    const orderInfoSection = document.getElementById('order-info');
+    orderInfoSection.innerHTML = `
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">${order.title}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">${order.location}</h6>
+                <p class="card-text">${order.description}</p>
+                <p class="card-text"><small class="text-muted">상태: ${order.status === 'open' ? '지원가능' : '마감'}</small></p>
+            </div>
+        </div>
+    `;
+
+    await FetchAndDisplayApplications(currentOrderId);
+}
+
+async function FetchAndDisplayApplications(orderId) {
+    if (!orderId) {
+        console.error('Invalid order ID');
+        ShowErrorMessage('유효하지 않은 주문 ID입니다.');
+        return;
+    }
+
+    ShowLoading();
+
+    try {
+        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrderApplications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ order_id: orderId })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch order applications: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('API Response:', result);
+
+        if (!result.success || !result.applications || !Array.isArray(result.applications)) {
+            throw new Error('Invalid response format: applications array not found or request unsuccessful');
+        }
+
+        const orderStatus = await FetchOrderStatus(orderId);
+        DisplayApplicationList(result.applications, orderStatus);
+    } catch (error) {
+        console.error('Error fetching order applications:', error);
+        ShowErrorMessage('지원서를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+        HideLoading();
+    }
+}
+
+async function FetchOrderStatus(orderId) {
+    try {
+        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrderStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ order_id: orderId })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch order status');
+        }
+
+        const result = await response.json();
+        return result.status;
+    } catch (error) {
+        console.error('Error fetching order status:', error);
+        return 'unknown';
+    }
+}
+
+function DisplayApplicationList(applications, orderStatus) {
+    const container = document.getElementById('applications-list');
+    container.innerHTML = '';
+    
+    const isOrderClosed = orderStatus === 'closed';
+
+    if (applications.length === 0) {
+        container.innerHTML = '<p class="text-center">아직 지원서가 없습니다.</p>';
+        return;
+    }
+
+    applications.forEach(application => {
+        const applicationElement = document.createElement('div');
+        applicationElement.className = 'application-item mb-3 p-3 border rounded';
+        applicationElement.setAttribute('data-application-id', application.application_id);
+        applicationElement.innerHTML = `
+            <h5>${application.applicant_name || '이름 없음'}</h5>
+            <p>예상 완료 시간: ${application.estimated_completion}</p>
+            <p>상태: <span class="badge ${GetStatusClass(application.status)}">${GetStatusText(application.status)}</span></p>
+            <button class="btn btn-primary btn-sm view-application">상세 보기</button>
+            <button class="btn btn-success btn-sm accept-application" ${isOrderClosed || application.status !== 'pending' ? 'disabled' : ''}>수락</button>
+            <button class="btn btn-danger btn-sm reject-application" ${isOrderClosed || application.status !== 'pending' ? 'disabled' : ''}>거절</button>
+        `;
+        container.appendChild(applicationElement);
+
+        // Add event listeners
+        applicationElement.querySelector('.view-application').addEventListener('click', () => ShowApplicationDetails(application));
+        if (!isOrderClosed && application.status === 'pending') {
+            applicationElement.querySelector('.accept-application').addEventListener('click', () => AcceptApplication(application.application_id));
+            applicationElement.querySelector('.reject-application').addEventListener('click', () => RejectApplication(application.application_id));
+        }
+    });
+
+    // Add "Reject All" button if needed
+    if (!isOrderClosed && applications.some(app => app.status === 'pending')) {
+        const rejectAllBtn = document.createElement('button');
+        rejectAllBtn.className = 'btn btn-danger mt-3';
+        rejectAllBtn.textContent = '모두 거절';
+        rejectAllBtn.addEventListener('click', RejectAllApplications);
+        container.appendChild(rejectAllBtn);
+    }
+}
+
+function ShowApplicationDetails(application) {
+    const modalBody = document.getElementById('applicationDetailsModalBody');
+    if (!modalBody) {
+        console.error('Application details modal body not found');
+        ShowErrorMessage('지원서 세부 정보를 표시할 컨테이너를 찾을 수 없습니다.');
+        return;
+    }
+
+    const availabilityHtml = application.availability.map(slot => {
+        return `<li>${slot.date} ${slot.time}</li>`;
+    }).join('');
+
+    const equipmentHtml = application.equipment.join(', ') + (application.otherEquipment ? `, ${application.otherEquipment}` : '');
+    const questionsHtml = application.questions.map(q => `<p><strong>${q.category}:</strong> ${q.text}</p>`).join('');
+
+    modalBody.innerHTML = `
+        <h5>지원자: ${application.applicant_name}</h5>
+        <p><strong>상태:</strong> <span class="badge ${GetStatusClass(application.status)}">${GetStatusText(application.status)}</span></p>
+        <p><strong>예상 완료 시간:</strong> ${application.estimated_completion}</p>
+        <p><strong>소개:</strong> ${application.introduction}</p>
+        <p><strong>보유 장비:</strong> ${equipmentHtml}</p>
+        <h6>가능한 시간:</h6>
+        <ul>${availabilityHtml}</ul>
+        <h6>질문:</h6>
+        ${questionsHtml}
+    `;
+
+    const applicationDetailsModal = new bootstrap.Modal(document.getElementById('applicationDetailsModal'));
+    applicationDetailsModal.show();
+
+    const acceptBtn = document.getElementById('acceptApplicationBtn');
+    const rejectBtn = document.getElementById('rejectApplicationBtn');
+
+    if (acceptBtn) {
+        acceptBtn.onclick = () => AcceptApplication(application.application_id);
+    }
+
+    if (rejectBtn) {
+        rejectBtn.onclick = () => RejectApplication(application.application_id);
+    }
+
+    // Disable buttons if the application is not pending
+    if (application.status !== 'pending') {
+        if (acceptBtn) acceptBtn.disabled = true;
+        if (rejectBtn) rejectBtn.disabled = true;
+    }
+}
+
+function GetStatusText(status) {
+    switch (status) {
+        case 'pending': return '대기중';
+        case 'accepted': return '수락됨';
+        case 'rejected': return '거절됨';
+        default: return '알 수 없음';
+    }
+}
+
+function GetStatusClass(status) {
+    switch (status) {
+        case 'pending': return 'bg-secondary';
+        case 'accepted': return 'bg-success';
+        case 'rejected': return 'bg-danger';
+        default: return 'bg-secondary';
+    }
+}
+
+async function AcceptApplication(applicationId) {
+    if (!confirm('이 지원서를 수락하시겠습니까? 다른 모든 지원서는 자동으로 거절됩니다.')) {
+        return;
+    }
+
+    ShowLoading();
+    try {
+        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/AcceptApplication', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                order_id: currentOrderId,
+                application_id: applicationId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to accept application');
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to accept application');
+        }
+
+        ShowSuccessMessage('지원서가 성공적으로 수락되었습니다.', 3000);
+        
+        // Update UI immediately
+        UpdateApplicationStatus(applicationId, 'accepted');
+        DisableApplicationActions();
+        
+        // Then refresh the applications list
+        await FetchAndDisplayApplications(currentOrderId);
+    } catch (error) {
+        console.error('Error accepting application:', error);
+        ShowErrorMessage('지원서 수락 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+        HideLoading();
+    }
+}
+
+async function RejectApplication(applicationId) {
+    if (!confirm('이 지원서를 거절하시겠습니까?')) {
+        return;
+    }
+
+    ShowLoading();
+    try {
+        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/RejectApplication', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                order_id: currentOrderId,
+                application_id: applicationId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to reject application');
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to reject application');
+        }
+
+        ShowSuccessMessage('지원서가 성공적으로 거절되었습니다.', 3000);
+        
+        // Update UI immediately
+        UpdateApplicationStatus(applicationId, 'rejected');
+        
+        // Then refresh the applications list
+        await FetchAndDisplayApplications(currentOrderId);
+    } catch (error) {
+        console.error('Error rejecting application:', error);
+        ShowErrorMessage('지원서 거절 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+        HideLoading();
+    }
+}
+
+async function RejectAllApplications() {
+    ShowErrorMessage('일괄 거절 기능은 아직 구현되지 않았습니다.');
+}
+
+function DisableApplicationActions() {
+    const container = document.getElementById('applications-list');
+    const actionButtons = container.querySelectorAll('.accept-application, .reject-application');
+    actionButtons.forEach(button => {
+        button.disabled = true;
+    });
+    
+    const rejectAllBtn = container.querySelector('.btn-danger[onclick="RejectAllApplications()"]');
+    if (rejectAllBtn) {
+        rejectAllBtn.disabled = true;
+    }
+}
+
+function UpdateApplicationStatus(applicationId, status) {
+    const applicationElement = document.querySelector(`[data-application-id="${applicationId}"]`);
+    if (applicationElement) {
+        const statusBadge = applicationElement.querySelector('.badge');
+        if (statusBadge) {
+            statusBadge.textContent = GetStatusText(status);
+            statusBadge.className = `badge ${GetStatusClass(status)}`;
+        }
+        
+        const acceptButton = applicationElement.querySelector('.accept-application');
+        const rejectButton = applicationElement.querySelector('.reject-application');
+        if (acceptButton) acceptButton.disabled = status !== 'pending';
+        if (rejectButton) rejectButton.disabled = status !== 'pending';
     }
 }
 
@@ -2143,7 +2488,7 @@ async function SubmitApplication() {
     const applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
 
     if (!applicationFormData || !applicationFormData.order_id) {
-        ShowErrorMessage('Invalid application data. Please try again.');
+        ShowErrorMessage('애플리케이션 데이터가 존재하지 않습니다.');
         await FillTheBody('home');
         return;
     }
@@ -2189,340 +2534,6 @@ async function SubmitApplication() {
 
 
 
-
-
-
-
-
-
-// Application Display and Management
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-async function FetchAndDisplayApplications(orderId) {
-    if (!orderId) {
-        console.error('Invalid order ID');
-        ShowErrorMessage('유효하지 않은 주문 ID입니다.');
-        return;
-    }
-
-    ShowLoading();
-
-    try {
-        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrderApplications', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ order_id: orderId })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch order applications: ${response.status} ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('API Response:', result);
-
-        if (!result.success || !result.applications || !Array.isArray(result.applications)) {
-            throw new Error('Invalid response format: applications array not found or request unsuccessful');
-        }
-
-        // Fetch the current order status
-        const orderStatus = await FetchOrderStatus(orderId);
-
-        DisplayApplicationList(result.applications, orderStatus);
-
-        // Show the applications modal
-        const applicationListModal = new bootstrap.Modal(document.getElementById('applicationListModal'));
-        applicationListModal.show();
-    } catch (error) {
-        console.error('Error fetching order applications:', error);
-        ShowErrorMessage('지원서를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
-        HideLoading();
-    }
-}
-
-async function FetchOrderStatus(orderId) {
-    try {
-        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrderStatus', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ order_id: orderId })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch order status');
-        }
-
-        const result = await response.json();
-        return result.status;
-    } catch (error) {
-        console.error('Error fetching order status:', error);
-        return 'unknown';
-    }
-}
-
-function DisplayApplicationList(applications, orderStatus) {
-    const container = document.getElementById('applicationListContainer');
-    container.innerHTML = '';
-
-    const rejectAllBtn = document.getElementById('rejectAllBtn');
-    
-    if (applications.length === 0) {
-        container.innerHTML = '<p>아직 지원서가 없습니다.</p>';
-        if (rejectAllBtn) {
-            rejectAllBtn.style.display = 'none';
-        }
-        return;
-    }
-    
-    const isOrderClosed = orderStatus === 'closed';
-
-    applications.forEach(application => {
-        const applicationElement = document.createElement('div');
-        applicationElement.className = 'application-item mb-3 p-3 border rounded';
-        applicationElement.setAttribute('data-application-id', application.application_id);
-        applicationElement.innerHTML = `
-            <h5>${application.applicant_name || '이름 없음'}</h5>
-            <p>예상 완료 시간: ${application.estimated_completion}</p>
-            <p>상태: <span class="badge ${application.status === 'rejected' ? 'bg-danger' : application.status === 'accepted' ? 'bg-success' : 'bg-secondary'} application-status">${GetStatusText(application.status)}</span></p>
-            <button class="btn btn-primary btn-sm view-application">상세 보기</button>
-            <button class="btn btn-success btn-sm accept-application" ${isOrderClosed || application.status !== 'pending' ? 'disabled' : ''}>수락</button>
-            <button class="btn btn-danger btn-sm reject-application" ${isOrderClosed || application.status !== 'pending' ? 'disabled' : ''}>거절</button>
-        `;
-        container.appendChild(applicationElement);
-
-        // Add event listeners
-        applicationElement.querySelector('.view-application').addEventListener('click', () => ShowApplicationDetails(application));
-        if (!isOrderClosed && application.status === 'pending') {
-            applicationElement.querySelector('.accept-application').addEventListener('click', () => AcceptApplication(application.application_id));
-            applicationElement.querySelector('.reject-application').addEventListener('click', () => RejectApplication(application.application_id));
-        }
-    });
-
-    // Add event listener for "Reject All" button
-    if (rejectAllBtn) {
-        if (isOrderClosed || applications.every(app => app.status !== 'pending')) {
-            rejectAllBtn.style.display = 'none';
-        } else {
-            rejectAllBtn.style.display = 'block';
-            rejectAllBtn.disabled = false;
-            rejectAllBtn.addEventListener('click', RejectAllApplications);
-        }
-    }
-}
-
-function ShowApplicationDetails(application) {
-    const modalBody = document.getElementById('applicationDetailsModalBody');
-    if (!modalBody) {
-        console.error('Application details modal body not found');
-        ShowErrorMessage('지원서 세부 정보를 표시할 컨테이너를 찾을 수 없습니다.');
-        return;
-    }
-
-    const availabilityHtml = application.availability.map(slot => {
-        return `<li>${slot.date} ${slot.time}</li>`;
-    }).join('');
-
-    const equipmentHtml = application.equipment.join(', ') + (application.otherEquipment ? `, ${application.otherEquipment}` : '');
-    const questionsHtml = application.questions.map(q => `<p><strong>${q.category}:</strong> ${q.text}</p>`).join('');
-
-    modalBody.innerHTML = `
-        <h5>지원자: ${application.applicant_name}</h5>
-        <p><strong>상태:</strong> <span class="badge ${GetStatusClass(application.status)}">${GetStatusText(application.status)}</span></p>
-        <p><strong>예상 완료 시간:</strong> ${application.estimated_completion}</p>
-        <p><strong>소개:</strong> ${application.introduction}</p>
-        <p><strong>보유 장비:</strong> ${equipmentHtml}</p>
-        <h6>가능한 시간:</h6>
-        <ul>${availabilityHtml}</ul>
-        <h6>질문:</h6>
-        ${questionsHtml}
-    `;
-
-    const applicationDetailsModal = new bootstrap.Modal(document.getElementById('applicationDetailsModal'));
-    applicationDetailsModal.show();
-
-    // Hide the application list modal
-    const applicationListModal = bootstrap.Modal.getInstance(document.getElementById('applicationListModal'));
-    if (applicationListModal) {
-        applicationListModal.hide();
-    } else {
-        console.warn('Application list modal instance not found');
-    }
-}
-
-function GetStatusText(status) {
-    switch (status) {
-        case 'pending': return '대기중';
-        case 'accepted': return '수락됨';
-        case 'rejected': return '거절됨';
-        default: return '알 수 없음';
-    }
-}
-
-function GetStatusClass(status) {
-    switch (status) {
-        case 'pending': return 'bg-secondary';
-        case 'accepted': return 'bg-success';
-        case 'rejected': return 'bg-danger';
-        default: return 'bg-secondary';
-    }
-}
-
-async function AcceptApplication(applicationId) {
-    if (!confirm('이 지원서를 수락하시겠습니까? 다른 모든 지원서는 자동으로 거절됩니다.')) {
-        return;
-    }
-
-    ShowLoading();
-    try {
-        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/AcceptApplication', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                order_id: currentOrderId,
-                application_id: applicationId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to accept application');
-        }
-
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.error || 'Failed to accept application');
-        }
-
-        ShowSuccessMessage('지원서가 성공적으로 수락되었습니다.', 3000);
-        
-        // Disable all action buttons in the application list
-        DisableApplicationActions();
-        
-        // Close the application list modal
-        const applicationListModal = bootstrap.Modal.getInstance(document.getElementById('applicationListModal'));
-        if (applicationListModal) {
-            applicationListModal.hide();
-        }
-
-        // Refresh the my orders list
-        await FetchAndDisplayMyOrderPosts(currentPage);
-    } catch (error) {
-        console.error('Error accepting application:', error);
-        ShowErrorMessage('지원서 수락 중 오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
-        HideLoading();
-    }
-}
-
-async function RejectApplication(applicationId) {
-    if (!confirm('이 지원서를 거절하시겠습니까?')) {
-        return;
-    }
-
-    ShowLoading();
-    try {
-        const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/RejectApplication', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                order_id: currentOrderId,
-                application_id: applicationId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to reject application');
-        }
-
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.error || 'Failed to reject application');
-        }
-
-        ShowSuccessMessage('지원서가 성공적으로 거절되었습니다.', 3000);
-        
-        // Update the UI to reflect the rejected application
-        UpdateApplicationStatus(applicationId, 'rejected');
-        
-        // Refresh the applications list
-        await FetchAndDisplayApplications(currentOrderId);
-    } catch (error) {
-        console.error('Error rejecting application:', error);
-        ShowErrorMessage('지원서 거절 중 오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
-        HideLoading();
-    }
-}
-
-async function RejectAllApplications() {
-    ShowErrorMessage('일괄 거절 기능은 아직 구현되지 않았습니다.');
-    // if (!confirm('모든 지원서를 거절하시겠습니까?')) {
-    //     return;
-    // }
-
-    // 
-    // try {
-    //     const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/RejectAllApplications', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify({
-    //             order_id: currentOrderId
-    //         })
-    //     });
-
-    //     if (!response.ok) {
-    //         throw new Error('Failed to reject all applications');
-    //     }
-
-    //     ShowSuccessMessage('모든 지원서가 성공적으로 거절되었습니다.', 3000);
-        
-    //     // Refresh the applications list
-    //     await FetchAndDisplayApplications(currentOrderId);
-    // } catch (error) {
-    //     console.error('Error rejecting all applications:', error);
-    //     ShowErrorMessage('지원서 일괄 거절 중 오류가 발생했습니다. 다시 시도해주세요.');
-    // } finally {
-    //     
-    // }
-}
-
-function DisableApplicationActions() {
-    const container = document.getElementById('applicationListContainer');
-    const actionButtons = container.querySelectorAll('.accept-application, .reject-application');
-    actionButtons.forEach(button => {
-        button.disabled = true;
-    });
-    
-    const rejectAllBtn = document.getElementById('rejectAllBtn');
-    if (rejectAllBtn) {
-        rejectAllBtn.disabled = true;
-    }
-}
-
-function UpdateApplicationStatus(applicationId, status) {
-    const applicationElement = document.querySelector(`[data-application-id="${applicationId}"]`);
-    if (applicationElement) {
-        const statusBadge = applicationElement.querySelector('.application-status');
-        if (statusBadge) {
-            statusBadge.textContent = status === 'rejected' ? '거절됨' : '대기중';
-            statusBadge.className = `badge ${status === 'rejected' ? 'bg-danger' : 'bg-secondary'} application-status`;
-        }
-        
-        const acceptButton = applicationElement.querySelector('.accept-application');
-        const rejectButton = applicationElement.querySelector('.reject-application');
-        if (acceptButton) acceptButton.disabled = status === 'rejected';
-        if (rejectButton) rejectButton.disabled = status === 'rejected';
-    }
-}
 
 
 
