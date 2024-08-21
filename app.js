@@ -1721,6 +1721,12 @@ async function SetupApplyForOrderPage() {
                 locale: "ko",
                 onChange: function(selectedDates, dateStr, instance) {
                     updateAvailabilityList(selectedDates);
+                },
+                onReady: function(selectedDates, dateStr, instance) {
+                    // Remove the readonly attribute and the flatpickr-input class
+                    const calendarElement = instance.input;
+                    calendarElement.removeAttribute("readonly");
+                    calendarElement.classList.remove("flatpickr-input");
                 }
             });
         }
