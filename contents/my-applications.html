@@ -1,4 +1,5 @@
 <!-- ////my-applications.html//// -->
+<!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -58,6 +59,7 @@
             border-radius: 15px;
             transition: all 0.3s ease;
             margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .application-card:hover {
             transform: translateY(-5px);
@@ -113,7 +115,7 @@
                         <label for="sort-option" class="form-label">정렬</label>
                         <select id="sort-option" class="form-select">
                             <option value="created_at">최신순</option>
-                            <option value="order_fee">수수료순</option>
+                            <option value="status">상태순</option>
                         </select>
                     </div>
                 </div>
@@ -136,17 +138,20 @@
     <!-- Template for application cards -->
     <template id="application-card-template">
         <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card application-card h-100" style="cursor: pointer;">
+            <div class="card application-card h-100">
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h5 class="card-title text-truncate mb-0"></h5>
                         <span class="badge application-status rounded-pill"></span>
                     </div>
-                    <h6 class="card-subtitle mb-2 text-muted"></h6>
+                    <h6 class="card-subtitle mb-2 text-muted order-title"></h6>
                     <p class="application-meta small text-muted mb-3"></p>
                     <div class="mt-auto d-flex justify-content-between align-items-center">
-                        <span class="fw-bold order-fee text-primary"></span>
-                        <button class="btn btn-sm btn-outline-danger btn-withdraw-application">지원 취소</button>
+                        <span class="estimated-completion"></span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary view-application me-2">상세 보기</button>
+                            <button class="btn btn-sm btn-outline-danger withdraw-application" style="display: none;">지원 철회</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -157,7 +162,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-light">
-                    <h5 class="modal-title" id="applicationDetailsModalLabel">지원서 상세</h5>
+                    <h5 class="modal-title" id="applicationDetailsModalLabel">지원서 상세 정보</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="applicationDetailsModalBody">
@@ -165,7 +170,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
-                    <button type="button" class="btn btn-danger" id="btn-withdraw-application">지원 취소</button>
                 </div>
             </div>
         </div>
