@@ -1507,7 +1507,7 @@ function ShowMyOrderDetails(order) {
             }
             // Navigate to the new applications page
             console.log('Attempting to navigate to order-applications page');
-            FillTheBody('order-applications', { orderId: order.order_id });
+            FillTheBody('order-applications', { order: order });
         };
     } else {
         console.error('viewApplicationsBtn not found');
