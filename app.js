@@ -1658,6 +1658,11 @@ async function SubmitOrder(event) {
 
 // Apply For Order Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function cleanupApplicationFormData() {
+    localStorage.removeItem('applicationFormData');
+}
+
 function InitializeApplicationForm(orderId) {
     const user = JSON.parse(localStorage.getItem('user'));
     let applicationFormData = {
@@ -1867,7 +1872,12 @@ async function SetupApplyForOrderPage() {
         }
     });
 
-    backBtn.addEventListener('click', () => FillTheBody('home'));
+    window.addEventListener('beforeunload', cleanupApplicationFormData);
+
+    backBtn.addEventListener('click', async () => {
+        cleanupApplicationFormData();
+        await FillTheBody('home');
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -2156,7 +2166,7 @@ async function SubmitApplication() {
 
         if (response.ok) {
             ShowSuccessMessage('지원이 성공적으로 제출되었습니다.', 3000);
-            localStorage.removeItem('applicationFormData');
+            cleanupApplicationFormData();
             await FillTheBody('home');
         } else if (response.status === 400 && result.message === 'You have already applied to this order.') {
             ShowErrorMessage('이미 이 오더에 지원하셨습니다.');
