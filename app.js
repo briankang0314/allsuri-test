@@ -1750,22 +1750,55 @@ function ShowApplicationDetails(application) {
     }
 
     const availabilityHtml = application.availability.map(slot => {
-        return `<li>${slot.date} ${slot.time}</li>`;
+        return `<li class="list-group-item">${slot.date} ${slot.time}</li>`;
     }).join('');
 
-    const equipmentHtml = application.equipment.join(', ') + (application.otherEquipment ? `, ${application.otherEquipment}` : '');
-    const questionsHtml = application.questions.map(q => `<p><strong>${q.category}:</strong> ${q.text}</p>`).join('');
+    const equipmentHtml = application.equipment.map(eq => `<span class="badge bg-secondary me-1">${eq}</span>`).join('') + 
+        (application.otherEquipment ? `<span class="badge bg-secondary">${application.otherEquipment}</span>` : '');
+
+    const questionsHtml = application.questions.map(q => `
+        <div class="mb-3">
+            <strong class="d-block mb-1">${q.category}:</strong>
+            <p class="mb-0">${q.text}</p>
+        </div>
+    `).join('');
 
     modalBody.innerHTML = `
-        <h5>지원자: ${application.applicant_name}</h5>
-        <p><strong>상태:</strong> <span class="badge ${GetStatusClass(application.status)}">${GetStatusText(application.status)}</span></p>
-        <p><strong>예상 완료 시간:</strong> ${application.estimated_completion}</p>
-        <p><strong>소개:</strong> ${application.introduction}</p>
-        <p><strong>보유 장비:</strong> ${equipmentHtml}</p>
-        <h6>가능한 시간:</h6>
-        <ul>${availabilityHtml}</ul>
-        <h6>질문:</h6>
-        ${questionsHtml}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">지원자: ${application.applicant_name}</h5>
+                <p class="card-text"><strong>상태:</strong> <span class="badge ${GetStatusClass(application.status)}">${GetStatusText(application.status)}</span></p>
+                <p class="card-text"><strong>예상 완료 시간:</strong> ${application.estimated_completion}</p>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6 class="card-title">소개</h6>
+                <p class="card-text">${application.introduction}</p>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6 class="card-title">보유 장비</h6>
+                <p class="card-text">${equipmentHtml}</p>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6 class="card-title">가능한 시간</h6>
+                <ul class="list-group list-group-flush">${availabilityHtml}</ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">질문</h6>
+                ${questionsHtml}
+            </div>
+        </div>
     `;
 
     const applicationDetailsModal = new bootstrap.Modal(document.getElementById('applicationDetailsModal'));
