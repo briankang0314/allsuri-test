@@ -2438,77 +2438,66 @@ async function SetupApplyForOrderPage() {
 
     function updatePreview() {
         const previewContent = document.getElementById('previewContent');
+        const applicantName = document.getElementById('applicantName').value;
+        const location = document.getElementById('location').value;
         const estimatedCompletion = document.getElementById('estimatedCompletion').value;
         const customEstimatedTime = document.getElementById('customEstimatedTime').value;
+        const introduction = document.getElementById('introduction').value;
         const equipmentChecked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
         const otherEquipment = document.getElementById('otherEquipment').value;
-        const questions = Array.from(questionTextareas.querySelectorAll('textarea')).map(ta => ({
+        const questions = Array.from(document.querySelectorAll('#questionTextareas textarea')).map(ta => ({
             category: ta.dataset.category,
             text: ta.value
         }));
-        const availabilityHtml = GetAvailabilityData().map(slot => `<li>${slot.date} ${slot.time}</li>`).join('');
+    
+        const availabilityHtml = GetAvailabilityData().map(slot => {
+            return `<div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-clock me-2"></i>
+                        <span>${slot.date} ${slot.time}</span>
+                    </div>`;
+        }).join('');
+    
+        const equipmentHtml = equipmentChecked.map(eq => `<span class="badge bg-light text-dark me-2 mb-2">${eq}</span>`).join('') + 
+            (otherEquipment ? `<span class="badge bg-light text-dark me-2 mb-2">${otherEquipment}</span>` : '');
+    
+        const questionsHtml = questions.map(q => `
+            <div class="mb-3">
+                <strong class="d-block mb-1">${q.category}</strong>
+                <p class="mb-0 text-muted">${q.text}</p>
+            </div>
+        `).join('');
     
         previewContent.innerHTML = `
-            <div class="preview-section">
-                <h3 class="preview-title">
-                    기본 정보
-                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step1">수정</button>
-                </h3>
-                <div class="preview-content">
-                    <p><strong>이름:</strong> ${document.getElementById('applicantName').value}</p>
-                    <p><strong>지역:</strong> ${document.getElementById('location').value}</p>
+            <div class="mb-4">
+                <h5 class="mb-3"><i class="bi bi-person-circle me-2"></i>${applicantName}</h5>
+                <div class="d-flex align-items-center mb-2">
+                    <span class="me-3"><strong>지역:</strong> ${location}</span>
+                    <span><strong>예상 완료 시간:</strong> ${estimatedCompletion === 'custom' ? `${customEstimatedTime}시간` : estimatedCompletion}</span>
                 </div>
             </div>
-            <div class="preview-section">
-                <h3 class="preview-title">
-                    작업 가능 일정
-                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button>
-                </h3>
-                <div class="preview-content">
-                    <ul>
-                        ${availabilityHtml}
-                    </ul>
-                </div>
-            </div>
-            <div class="preview-section">
-                <h3 class="preview-title">
-                    예상 완료 시간
-                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button>
-                </h3>
-                <div class="preview-content">
-                    <p>${estimatedCompletion === 'custom' ? `${customEstimatedTime} 시간` : estimatedCompletion}</p>
-                </div>
-            </div>
-            <div class="preview-section">
-                <h3 class="preview-title">
-                    자기 소개
-                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button>
-                </h3>
-                <div class="preview-content">
-                    <p>${document.getElementById('introduction').value}</p>
-                </div>
-            </div>
-            <div class="preview-section">
-                <h3 class="preview-title">
-                    장비 및 질문
-                    <button type="button" class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button>
-                </h3>
-                <div class="preview-content">
-                    <p><strong>보유 장비:</strong> ${equipmentChecked.join(', ')}${otherEquipment ? `, ${otherEquipment}` : ''}</p>
-                    ${questions.map(q => `<p><strong>${q.category} 관련 질문:</strong> ${q.text}</p>`).join('')}
-                </div>
-            </div>
-        `;
     
-        // Add event listeners to all edit buttons
-        const editButtons = previewContent.querySelectorAll('.edit-section');
-        editButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const sectionId = this.getAttribute('data-section');
-                editSection(sectionId);
-            });
-        });
+            <div class="mb-4">
+                <h6 class="mb-3"><i class="bi bi-card-text me-2"></i>소개</h6>
+                <p class="text-muted">${introduction}</p>
+            </div>
+    
+            <div class="mb-4">
+                <h6 class="mb-3"><i class="bi bi-tools me-2"></i>보유 장비</h6>
+                <div>${equipmentHtml}</div>
+            </div>
+    
+            <div class="mb-4">
+                <h6 class="mb-3"><i class="bi bi-calendar-check me-2"></i>가능한 시간</h6>
+                ${availabilityHtml}
+            </div>
+    
+            ${questions.length > 0 ? `
+                <div>
+                    <h6 class="mb-3"><i class="bi bi-chat-left-text me-2"></i>질문</h6>
+                    ${questionsHtml}
+                </div>
+            ` : ''}
+        `;
     }
 
     // Initialize the form
