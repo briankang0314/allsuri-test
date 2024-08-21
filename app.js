@@ -1604,12 +1604,21 @@ async function SetupOrderApplicationsPage(params) {
     if (orderInfoSection) {
         console.log('Updating order info section');
         orderInfoSection.innerHTML = `
-            <div class="card mb-4">
+            <div class="card mb-4 order-info-card">
                 <div class="card-body">
-                    <h5 class="card-title">${order.title}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">${order.location}</h6>
-                    <p class="card-text">${order.description}</p>
-                    <p class="card-text"><small class="text-muted">상태: ${order.status === 'open' ? '지원가능' : '마감'}</small></p>
+                    <h5 class="card-title">${order.title || 'No Title'}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">${order.location || 'No Location'}</h6>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><strong>상태:</strong> <span class="badge ${order.status === 'open' ? 'bg-success' : 'bg-danger'}">${order.status === 'open' ? '지원가능' : '마감'}</span></p>
+                            <p><strong>수수료:</strong> ${order.fee === -1 ? '수수료 조정 가능' : `${Number(order.fee || 0).toLocaleString()}%`}</p>
+                            <p><strong>지원자:</strong> ${order.applicants_count || 0}명</p>
+                            <p><strong>등록일:</strong> ${GetTimeAgo(order.created_at)}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold mb-3">오더 내용</h6>
+                    <p>${order.description || '상세 설명 없음'}</p>
                 </div>
             </div>
         `;
