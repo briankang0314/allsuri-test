@@ -187,6 +187,7 @@ async function FillTheBody(contentName, params = {}) {
             // For all other pages, proceed as before
             const content = await fetch(`/contents/${contentName}.html`).then(response => response.text());
             document.body.innerHTML = content;
+            console.log(`Content loaded for ${contentName}`);
 
             switch (contentName) {
                 case 'landing':
@@ -261,7 +262,15 @@ async function FillTheBody(contentName, params = {}) {
                     await SetupMyOrdersPage();
                     break;
                 case 'order-applications':
-                    await SetupOrderApplicationsPage(params);
+                    console.log('Attempting to set up order-applications page');
+                    try {
+                        await SetupOrderApplicationsPage(params);
+                        console.log('Order-applications page setup completed');
+                    } catch (error) {
+                        console.error('Error setting up order-applications page:', error);
+                        ShowErrorMessage('지원자 목록을 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
+                        await FillTheBody('my-orders');
+                    }
                     break;
                 case 'my-applications':
                     await SetupMyApplicationsPage();
@@ -1450,6 +1459,7 @@ function SetupMyOrdersFilterAndSort() {
 }
 
 function ShowMyOrderDetails(order) {
+    console.log('ShowMyOrderDetails called with order:', order);
     currentOrderId = order.order_id;
     const modalTitle = document.getElementById('orderDetailsModalLabel');
     const modalBody = document.getElementById('orderDetailsModalBody');
@@ -1484,17 +1494,28 @@ function ShowMyOrderDetails(order) {
 
     const viewApplicationsBtn = document.getElementById('btn-view-applications');
     if (viewApplicationsBtn) {
+        console.log('Setting up viewApplicationsBtn click handler');
         viewApplicationsBtn.onclick = () => {
+            console.log('viewApplicationsBtn clicked');
             // Close the current modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
-            modal.hide();
+            if (modal) {
+                console.log('Closing orderDetailsModal');
+                modal.hide();
+            } else {
+                console.error('orderDetailsModal instance not found');
+            }
             // Navigate to the new applications page
+            console.log('Attempting to navigate to order-applications page');
             FillTheBody('order-applications', { orderId: order.order_id });
         };
+    } else {
+        console.error('viewApplicationsBtn not found');
     }
 
     const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
     modal.show();
+    console.log('orderDetailsModal shown');
 }
 
 function EditOrder(orderId) {
@@ -1550,7 +1571,9 @@ async function DeleteOrder(orderId) {
 // Order Applications Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function SetupOrderApplicationsPage(params) {
+    console.log('SetupOrderApplicationsPage called with params:', params);
     if (!params || !params.order) {
+        console.error('Invalid params for SetupOrderApplicationsPage');
         ShowErrorMessage('Invalid order information');
         await FillTheBody('my-orders');
         return;
@@ -1558,34 +1581,49 @@ async function SetupOrderApplicationsPage(params) {
 
     const order = params.order;
     currentOrderId = order.order_id;
+    console.log('Current order ID set:', currentOrderId);
 
     const backBtn = document.getElementById('back-btn');
     if (backBtn) {
+        console.log('Back button found, setting up event listener');
         backBtn.addEventListener('click', () => FillTheBody('my-orders'));
+    } else {
+        console.warn('Back button not found');
     }
 
     const refreshBtn = document.getElementById('refresh-btn');
     if (refreshBtn) {
+        console.log('Refresh button found, setting up event listener');
         refreshBtn.addEventListener('click', () => FetchAndDisplayApplications(currentOrderId));
+    } else {
+        console.warn('Refresh button not found');
     }
 
     // Display order info
     const orderInfoSection = document.getElementById('order-info');
-    orderInfoSection.innerHTML = `
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">${order.title}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">${order.location}</h6>
-                <p class="card-text">${order.description}</p>
-                <p class="card-text"><small class="text-muted">상태: ${order.status === 'open' ? '지원가능' : '마감'}</small></p>
+    if (orderInfoSection) {
+        console.log('Updating order info section');
+        orderInfoSection.innerHTML = `
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">${order.title}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">${order.location}</h6>
+                    <p class="card-text">${order.description}</p>
+                    <p class="card-text"><small class="text-muted">상태: ${order.status === 'open' ? '지원가능' : '마감'}</small></p>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+    } else {
+        console.error('Order info section not found');
+    }
 
+    console.log('Calling FetchAndDisplayApplications');
     await FetchAndDisplayApplications(currentOrderId);
+    console.log('SetupOrderApplicationsPage completed');
 }
 
 async function FetchAndDisplayApplications(orderId) {
+    console.log('FetchAndDisplayApplications called with orderId:', orderId);
     if (!orderId) {
         console.error('Invalid order ID');
         ShowErrorMessage('유효하지 않은 주문 ID입니다.');
@@ -1595,6 +1633,7 @@ async function FetchAndDisplayApplications(orderId) {
     ShowLoading();
 
     try {
+        console.log('Making API request to fetch applications');
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/GetOrderApplications', {
             method: 'POST',
             headers: {
@@ -1614,7 +1653,11 @@ async function FetchAndDisplayApplications(orderId) {
             throw new Error('Invalid response format: applications array not found or request unsuccessful');
         }
 
+        console.log('Fetching order status');
         const orderStatus = await FetchOrderStatus(orderId);
+        console.log('Order status:', orderStatus);
+
+        console.log('Displaying application list');
         DisplayApplicationList(result.applications, orderStatus);
     } catch (error) {
         console.error('Error fetching order applications:', error);
