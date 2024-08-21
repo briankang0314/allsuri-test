@@ -87,6 +87,11 @@ let myOrdersCurrentFilters = {
 };
 let myOrdersCurrentSort = 'created_at';
 
+let myApplicationsCurrentFilters = {
+    status: ''
+};
+let myApplicationsCurrentSort = 'created_at';
+
 let isLoading = false;
 
 const loadingIndicatorHTML = `
@@ -1612,8 +1617,8 @@ async function FetchAndDisplayMyApplications(page = 1) {
             body: JSON.stringify({
                 page,
                 limit: postsPerPage,
-                filters: myApplicationsCurrentFilters,
-                sort: myApplicationsCurrentSort
+                filters: myApplicationsCurrentFilters || {},
+                sort: myApplicationsCurrentSort || 'created_at'
             })
         });
 
