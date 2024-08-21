@@ -1730,7 +1730,7 @@ async function SetupApplyForOrderPage() {
         const availabilityList = document.getElementById('availabilityList');
         const existingSelections = Array.from(availabilityList.querySelectorAll('li')).reduce((acc, li) => {
             const date = li.getAttribute('data-date');
-            const times = Array.from(li.querySelectorAll('.availability-time:checked')).map(cb => cb.value);
+            const times = Array.from(li.querySelectorAll('.time-slot.selected')).map(slot => slot.textContent);
             acc[date] = times;
             return acc;
         }, {});
@@ -1743,24 +1743,30 @@ async function SetupApplyForOrderPage() {
             listItem.setAttribute('data-date', dateString);
             
             const timeOptions = ['오전', '오후', '저녁'];
-            const timeSelections = timeOptions.map(time => {
-                const isChecked = existingSelections[dateString] && existingSelections[dateString].includes(time);
+            const timeSlots = timeOptions.map(time => {
+                const isSelected = existingSelections[dateString] && existingSelections[dateString].includes(time);
                 return `
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input availability-time" type="checkbox" id="${dateString}-${time}" value="${time}" ${isChecked ? 'checked' : ''}>
-                        <label class="form-check-label" for="${dateString}-${time}">${time}</label>
-                    </div>
+                    <span class="time-slot ${isSelected ? 'selected' : ''}" data-time="${time}">${time}</span>
                 `;
             }).join('');
     
             listItem.innerHTML = `
-                <span>${dateString}</span>
-                <div class="mt-2">
-                    ${timeSelections}
+                <div>${dateString}</div>
+                <div class="time-slots">
+                    ${timeSlots}
                 </div>
             `;
             availabilityList.appendChild(listItem);
         });
+    
+        // Add click event listeners to time slots
+        availabilityList.querySelectorAll('.time-slot').forEach(slot => {
+            slot.addEventListener('click', function() {
+                this.classList.toggle('selected');
+                saveProgress();
+            });
+        });
+    
         saveProgress();
     }
 
@@ -2083,9 +2089,9 @@ function ValidateAvailability() {
 
     let isValid = true;
     availabilitySlots.forEach((slot, index) => {
-        const timeCheckboxes = slot.querySelectorAll('.availability-time:checked');
+        const selectedTimeSlots = slot.querySelectorAll('.time-slot.selected');
 
-        if (timeCheckboxes.length === 0) {
+        if (selectedTimeSlots.length === 0) {
             isValid = false;
             errorElement.textContent = `${index + 1}번째 일정의 시간을 최소 하나 선택해주세요.`;
             errorElement.style.display = 'block';
@@ -2103,7 +2109,7 @@ function GetAvailabilityData() {
     const availabilityList = document.getElementById('availabilityList');
     return Array.from(availabilityList.querySelectorAll('li')).flatMap(slot => {
         const date = slot.getAttribute('data-date');
-        const times = Array.from(slot.querySelectorAll('.availability-time:checked')).map(cb => cb.value);
+        const times = Array.from(slot.querySelectorAll('.time-slot.selected')).map(timeSlot => timeSlot.textContent);
         return times.map(time => ({ date, time }));
     });
 }
