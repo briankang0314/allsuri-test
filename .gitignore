@@ -1,2 +1,7 @@
 # Local Netlify folder
 .netlify
+
+# Local lambda functions folder
+_lambda-functions
+
+
