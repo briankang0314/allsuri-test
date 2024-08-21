@@ -1730,8 +1730,7 @@ async function SetupApplyForOrderPage() {
                 onReady: function(selectedDates, dateStr, instance) {
                     // Remove the readonly attribute and the flatpickr-input class
                     const calendarElement = instance.input;
-                    calendarElement.removeAttribute("readonly");
-                    calendarElement.classList.remove("flatpickr-input");
+                    calendarElement.parentNode.removeChild(calendarElement);
                 }
             });
         }
