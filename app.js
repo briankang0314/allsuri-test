@@ -1730,8 +1730,8 @@ async function SetupApplyForOrderPage() {
         const availabilityList = document.getElementById('availabilityList');
         const existingSelections = Array.from(availabilityList.querySelectorAll('li')).reduce((acc, li) => {
             const date = li.getAttribute('data-date');
-            const time = li.querySelector('.availability-time').value;
-            acc[date] = time;
+            const times = Array.from(li.querySelectorAll('.availability-time:checked')).map(cb => cb.value);
+            acc[date] = times;
             return acc;
         }, {});
     
@@ -1739,25 +1739,26 @@ async function SetupApplyForOrderPage() {
         selectedDates.forEach(date => {
             const dateString = formatDate(date);
             const listItem = document.createElement('li');
-            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            listItem.className = 'list-group-item';
             listItem.setAttribute('data-date', dateString);
             
-            const timeSelect = document.createElement('select');
-            timeSelect.className = 'form-select availability-time';
-            timeSelect.style.width = 'auto';
-            timeSelect.innerHTML = `
-                <option value="">시간대 선택</option>
-                <option value="오전">오전</option>
-                <option value="오후">오후</option>
-                <option value="저녁">저녁</option>
-            `;
-            
-            if (existingSelections[dateString]) {
-                timeSelect.value = existingSelections[dateString];
-            }
+            const timeOptions = ['오전', '오후', '저녁'];
+            const timeSelections = timeOptions.map(time => {
+                const isChecked = existingSelections[dateString] && existingSelections[dateString].includes(time);
+                return `
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input availability-time" type="checkbox" id="${dateString}-${time}" value="${time}" ${isChecked ? 'checked' : ''}>
+                        <label class="form-check-label" for="${dateString}-${time}">${time}</label>
+                    </div>
+                `;
+            }).join('');
     
-            listItem.innerHTML = `${dateString}`;
-            listItem.appendChild(timeSelect);
+            listItem.innerHTML = `
+                <span>${dateString}</span>
+                <div class="mt-2">
+                    ${timeSelections}
+                </div>
+            `;
             availabilityList.appendChild(listItem);
         });
         saveProgress();
@@ -2082,11 +2083,11 @@ function ValidateAvailability() {
 
     let isValid = true;
     availabilitySlots.forEach((slot, index) => {
-        const timeSelect = slot.querySelector('.availability-time');
+        const timeCheckboxes = slot.querySelectorAll('.availability-time:checked');
 
-        if (!timeSelect.value) {
+        if (timeCheckboxes.length === 0) {
             isValid = false;
-            errorElement.textContent = `${index + 1}번째 일정의 시간을 선택해주세요.`;
+            errorElement.textContent = `${index + 1}번째 일정의 시간을 최소 하나 선택해주세요.`;
             errorElement.style.display = 'block';
         }
     });
@@ -2100,10 +2101,11 @@ function ValidateAvailability() {
 
 function GetAvailabilityData() {
     const availabilityList = document.getElementById('availabilityList');
-    return Array.from(availabilityList.querySelectorAll('li')).map(slot => ({
-        date: slot.getAttribute('data-date'),
-        time: slot.querySelector('.availability-time').value
-    })).filter(slot => slot.time !== ''); // Only include slots with selected times
+    return Array.from(availabilityList.querySelectorAll('li')).flatMap(slot => {
+        const date = slot.getAttribute('data-date');
+        const times = Array.from(slot.querySelectorAll('.availability-time:checked')).map(cb => cb.value);
+        return times.map(time => ({ date, time }));
+    });
 }
 
 async function SubmitApplication() {
