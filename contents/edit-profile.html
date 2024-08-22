@@ -9,61 +9,56 @@
     <link rel="icon" href="/contents/_favicon.png" type="image/x-icon">
 	
     <style>
-        /* Add your custom styles here */
+        :root {
+            --primary-bg-color: #f8f9fa;
+            --secondary-bg-color: #ffffff;
+            --primary-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 15px;
+        }
+    
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f8f9fa;
+            background-color: var(--primary-bg-color);
         }
+    
         .header {
-            background-color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background-color: var(--secondary-bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--primary-shadow);
             margin-bottom: 20px;
             padding: 15px 20px;
         }
-
+    
         .logo {
             width: 32px;
             height: 32px;
             transition: transform 0.3s ease;
         }
-
+    
         .logo:hover {
             transform: scale(1.1);
         }
-
+    
         #back-btn {
             transition: all 0.3s ease;
         }
-
+    
         #back-btn:hover {
             background-color: #f8f9fa;
             transform: translateY(-2px);
         }
-
-        @media (max-width: 576px) {
-            .header {
-                padding: 10px 15px;
-            }
-
-            .header h1 {
-                font-size: 1.5rem;
-            }
-
-            #back-btn {
-                font-size: 0.9rem;
-                padding: 0.3rem 0.6rem;
-            }
-        }
+    
         .content {
             padding: 3rem 0;
         }
+    
         .edit-profile-form {
-            background-color: #ffffff;
-            border-radius: 15px;
+            background-color: var(--secondary-bg-color);
+            border-radius: var(--border-radius);
             padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: var(--primary-shadow);
         }
+    
         .btn-save-profile {
             background-color: #FEE500;
             color: #000000;
@@ -71,10 +66,26 @@
             transition: all 0.3s ease;
             font-weight: 500;
         }
+    
         .btn-save-profile:hover {
             background-color: #FFD700;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    
+        @media (max-width: 576px) {
+            .header {
+                padding: 10px 15px;
+            }
+    
+            .header h1 {
+                font-size: 1.5rem;
+            }
+    
+            #back-btn {
+                font-size: 0.9rem;
+                padding: 0.3rem 0.6rem;
+            }
         }
     </style>
 </head>
