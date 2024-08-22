@@ -2791,9 +2791,11 @@ async function SetupApplyForOrderPage() {
     
             ${questions.length > 0 ? `
                 <div>
-                    <h6 class="mb-3"><i class="bi bi-chat-left-text me-2"></i>질문</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>질문</h6>
+                        <button class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button>
+                    </div>
                     ${questionsHtml}
-                    <button class="btn btn-sm btn-outline-primary edit-section" data-section="questions">수정</button>
                 </div>
             ` : ''}
         `;
