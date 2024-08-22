@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- ////post-order.html//// -->
 <html>
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,40 +8,72 @@
         <link rel="icon" href="/contents/_favicon.png" type="image/x-icon">
 
         <style>
+            :root {
+                --primary-bg-color: #f8f9fa;
+                --secondary-bg-color: #ffffff;
+                --primary-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                --border-radius: 8px;
+                --accent-color: #FEE500;
+                --accent-hover-color: #FFD700;
+            }
+        
             body {
                 font-family: 'Noto Sans KR', sans-serif;
+                background-color: var(--primary-bg-color);
             }
+        
+            .container-fluid {
+                max-width: 1200px;
+            }
+        
             .header {
+                background-color: var(--secondary-bg-color);
                 border-bottom: 1px solid #e0e0e0;
                 padding: 10px 0;
+                margin-bottom: 20px;
             }
+        
             .logo {
                 width: 24px;
                 height: 24px;
             }
+        
             .content {
                 padding: 2rem 0;
             }
+        
             .order-form {
                 border: 1px solid #e0e0e0;
-                border-radius: 8px;
+                border-radius: var(--border-radius);
                 padding: 2rem;
-                background-color: #ffffff;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                background-color: var(--secondary-bg-color);
+                box-shadow: var(--primary-shadow);
             }
+        
             .form-control:focus {
-                border-color: #FEE500;
+                border-color: var(--accent-color);
                 box-shadow: 0 0 0 0.2rem rgba(254, 229, 0, 0.25);
             }
-            .btn-post-order {
-                background-color: #FEE500;
+        
+            .btn {
+                border-radius: var(--border-radius);
+                transition: all 0.3s ease;
+            }
+        
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+        
+            .btn-primary {
+                background-color: var(--accent-color);
                 color: #000000;
                 border: none;
-                transition: background-color 0.3s ease-in-out;
             }
-            .btn-post-order:hover {
-                background-color: #FFD700;
+        
+            .btn-primary:hover {
+                background-color: var(--accent-hover-color);
             }
+        
             @media (max-width: 576px) {
                 .header .btn {
                     font-size: 0.8rem;
