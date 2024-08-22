@@ -2913,7 +2913,17 @@ function GenerateEquipmentCheckboxes() {
     const applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
     const selectedEquipment = applicationFormData?.equipment || [];
 
-    equipmentGroups.forEach(group => {
+    // Create a row to hold our two columns
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    // Create two columns
+    const col1 = document.createElement('div');
+    col1.className = 'col-md-6';
+    const col2 = document.createElement('div');
+    col2.className = 'col-md-6';
+
+    equipmentGroups.forEach((group, groupIndex) => {
         const groupDiv = document.createElement('div');
         groupDiv.className = 'mb-3';
         
@@ -2947,8 +2957,17 @@ function GenerateEquipmentCheckboxes() {
             groupDiv.appendChild(checkboxDiv);
         });
 
-        equipmentContainer.appendChild(groupDiv);
+        // Alternate between columns
+        if (groupIndex % 2 === 0) {
+            col1.appendChild(groupDiv);
+        } else {
+            col2.appendChild(groupDiv);
+        }
     });
+
+    row.appendChild(col1);
+    row.appendChild(col2);
+    equipmentContainer.appendChild(row);
 }
 
 
