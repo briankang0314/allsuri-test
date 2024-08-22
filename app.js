@@ -2034,30 +2034,15 @@ function DisplayApplicationList(applications, orderStatus) {
             <p>예상 완료 시간: ${application.estimated_completion}</p>
             <p>상태: <span class="badge ${GetStatusClass(application.status)}">${GetStatusText(application.status)}</span></p>
             <button class="btn btn-primary btn-sm view-application">상세 보기</button>
-            <button class="btn btn-success btn-sm accept-application" ${isOrderClosed || application.status !== 'pending' ? 'disabled' : ''}>수락</button>
-            <button class="btn btn-danger btn-sm reject-application" ${isOrderClosed || application.status !== 'pending' ? 'disabled' : ''}>거절</button>
         `;
         container.appendChild(applicationElement);
 
         // Add event listeners
-        applicationElement.querySelector('.view-application').addEventListener('click', () => ShowApplicationDetails(application));
-        if (!isOrderClosed && application.status === 'pending') {
-            applicationElement.querySelector('.accept-application').addEventListener('click', () => AcceptApplication(application.application_id));
-            applicationElement.querySelector('.reject-application').addEventListener('click', () => RejectApplication(application.application_id));
-        }
+        applicationElement.querySelector('.view-application').addEventListener('click', () => ShowApplicationDetails(application, isOrderClosed));
     });
-
-    // Add "Reject All" button if needed
-    if (!isOrderClosed && applications.some(app => app.status === 'pending')) {
-        const rejectAllBtn = document.createElement('button');
-        rejectAllBtn.className = 'btn btn-danger mt-3';
-        rejectAllBtn.textContent = '모두 거절';
-        rejectAllBtn.addEventListener('click', RejectAllApplications);
-        container.appendChild(rejectAllBtn);
-    }
 }
 
-function ShowApplicationDetails(application) {
+function ShowApplicationDetails(application, isOrderClosed) {
     const modalBody = document.getElementById('applicationDetailsModalBody');
     if (!modalBody) {
         console.error('Application details modal body not found');
@@ -2119,16 +2104,18 @@ function ShowApplicationDetails(application) {
 
     if (acceptBtn) {
         acceptBtn.onclick = () => AcceptApplication(application.application_id);
+        acceptBtn.disabled = isOrderClosed || application.status !== 'pending';
     }
 
     if (rejectBtn) {
         rejectBtn.onclick = () => RejectApplication(application.application_id);
+        rejectBtn.disabled = isOrderClosed || application.status !== 'pending';
     }
 
-    // Disable buttons if the application is not pending
-    if (application.status !== 'pending') {
-        if (acceptBtn) acceptBtn.disabled = true;
-        if (rejectBtn) rejectBtn.disabled = true;
+    // Update button visibility based on application status
+    const buttonContainer = document.querySelector('#applicationDetailsModal .modal-footer');
+    if (buttonContainer) {
+        buttonContainer.style.display = (isOrderClosed || application.status !== 'pending') ? 'none' : 'flex';
     }
 }
 
@@ -2222,15 +2209,12 @@ async function RejectAllApplications() {
 }
 
 function DisableApplicationActions() {
-    const container = document.getElementById('applications-list');
-    const actionButtons = container.querySelectorAll('.accept-application, .reject-application');
-    actionButtons.forEach(button => {
-        button.disabled = true;
-    });
-    
-    const rejectAllBtn = container.querySelector('.btn-danger[onclick="RejectAllApplications()"]');
-    if (rejectAllBtn) {
-        rejectAllBtn.disabled = true;
+    const modal = document.getElementById('applicationDetailsModal');
+    if (modal) {
+        const acceptBtn = modal.querySelector('#acceptApplicationBtn');
+        const rejectBtn = modal.querySelector('#rejectApplicationBtn');
+        if (acceptBtn) acceptBtn.disabled = true;
+        if (rejectBtn) rejectBtn.disabled = true;
     }
 }
 
@@ -2242,11 +2226,12 @@ function UpdateApplicationStatus(applicationId, status) {
             statusBadge.textContent = GetStatusText(status);
             statusBadge.className = `badge ${GetStatusClass(status)}`;
         }
-        
-        const acceptButton = applicationElement.querySelector('.accept-application');
-        const rejectButton = applicationElement.querySelector('.reject-application');
-        if (acceptButton) acceptButton.disabled = status !== 'pending';
-        if (rejectButton) rejectButton.disabled = status !== 'pending';
+    }
+    
+    // Close the modal after updating the status
+    const modal = bootstrap.Modal.getInstance(document.getElementById('applicationDetailsModal'));
+    if (modal) {
+        modal.hide();
     }
 }
 
@@ -3033,7 +3018,7 @@ async function SubmitApplication() {
             cleanupApplicationFormData();
             await FillTheBody('home');
         } else if (response.status === 400 && result.message === 'You have already applied to this order.') {
-            ShowErrorMessage('이미 이 오더에 지원하셨습니다.');
+            ShowErrorMessage('이미 이 오더에 지원하셨습니다.', 3000);
             await FillTheBody('home');
         } else {
             throw new Error(result.error || result.message || '지원 제출에 실패했습니다.');
