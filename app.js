@@ -2913,23 +2913,37 @@ function GenerateEquipmentCheckboxes() {
     const applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
     const selectedEquipment = applicationFormData?.equipment || [];
 
-    // Create a row to hold our two columns
-    const row = document.createElement('div');
-    row.className = 'row';
-
-    // Create two columns
-    const col1 = document.createElement('div');
-    col1.className = 'col-md-6';
-    const col2 = document.createElement('div');
-    col2.className = 'col-md-6';
-
     equipmentGroups.forEach((group, groupIndex) => {
         const groupDiv = document.createElement('div');
-        groupDiv.className = 'mb-3';
+        groupDiv.className = 'card mb-2';
         
+        const groupHeader = document.createElement('div');
+        groupHeader.className = 'card-header';
+        groupHeader.id = `heading${groupIndex}`;
+
         const groupTitle = document.createElement('h5');
-        groupTitle.textContent = group.name;
-        groupDiv.appendChild(groupTitle);
+        groupTitle.className = 'mb-0';
+        
+        const collapseButton = document.createElement('button');
+        collapseButton.className = 'btn btn-link';
+        collapseButton.type = 'button';
+        collapseButton.setAttribute('data-bs-toggle', 'collapse');
+        collapseButton.setAttribute('data-bs-target', `#collapse${groupIndex}`);
+        collapseButton.setAttribute('aria-expanded', 'false');
+        collapseButton.setAttribute('aria-controls', `collapse${groupIndex}`);
+        collapseButton.textContent = group.name;
+
+        groupTitle.appendChild(collapseButton);
+        groupHeader.appendChild(groupTitle);
+        groupDiv.appendChild(groupHeader);
+
+        const collapseDiv = document.createElement('div');
+        collapseDiv.id = `collapse${groupIndex}`;
+        collapseDiv.className = 'collapse';
+        collapseDiv.setAttribute('aria-labelledby', `heading${groupIndex}`);
+
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
 
         group.options.forEach((option, index) => {
             const checkboxDiv = document.createElement('div');
@@ -2954,20 +2968,23 @@ function GenerateEquipmentCheckboxes() {
 
             checkboxDiv.appendChild(input);
             checkboxDiv.appendChild(label);
-            groupDiv.appendChild(checkboxDiv);
+            cardBody.appendChild(checkboxDiv);
         });
 
-        // Alternate between columns
-        if (groupIndex % 2 === 0) {
-            col1.appendChild(groupDiv);
-        } else {
-            col2.appendChild(groupDiv);
-        }
+        collapseDiv.appendChild(cardBody);
+        groupDiv.appendChild(collapseDiv);
+        equipmentContainer.appendChild(groupDiv);
     });
 
-    row.appendChild(col1);
-    row.appendChild(col2);
-    equipmentContainer.appendChild(row);
+    // Add an event listener to expand the first group with a selected item
+    const collapsibles = equipmentContainer.querySelectorAll('.collapse');
+    collapsibles.forEach((collapse, index) => {
+        const hasCheckedItems = collapse.querySelector('input:checked');
+        if (hasCheckedItems) {
+            collapse.classList.add('show');
+            return false; // Break the loop after expanding the first group with checked items
+        }
+    });
 }
 
 

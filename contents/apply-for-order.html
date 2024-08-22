@@ -150,10 +150,23 @@
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
-        @media (max-width: 767px) {
-            .equipment-group .col-md-6 + .col-md-6 {
-                margin-top: 1rem;
-            }
+        .equipment-group .card-header {
+            background-color: #f8f9fa;
+        }
+
+        .equipment-group .btn-link {
+            color: #0056b3;
+            text-decoration: none;
+        }
+
+        .equipment-group .btn-link:hover,
+        .equipment-group .btn-link:focus {
+            text-decoration: underline;
+        }
+
+        .equipment-group .card-body {
+            max-height: 300px;
+            overflow-y: auto;
         }
     </style>
 </head>
