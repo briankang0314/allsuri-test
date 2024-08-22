@@ -2460,6 +2460,7 @@ async function SetupApplyForOrderPage() {
                 mode: "multiple",
                 dateFormat: "Y-m-d",
                 locale: "ko",
+                minDate: "today",  // Set minimum date to today
                 onChange: function(selectedDates, dateStr, instance) {
                     updateAvailabilityList(selectedDates);
                 },
