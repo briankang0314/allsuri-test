@@ -156,53 +156,45 @@ const postsPerPage = 10;
 let currentOrderId = null;
 
 const equipmentGroups = [
-    {
-        name: '전동 공구',
-        options: ['전동드릴', '전동드라이버', '전동샌더', '전동톱', '전동대패', '전동그라인더', '전동해머', '전동믹서']
-    },
-    {
-        name: '측정 도구',
-        options: ['수평계', '줄자', '레이저 거리측정기', '각도기', '버니어캘리퍼스', '멀티미터', '온습도계', '금속탐지기']
-    },
-    {
-        name: '수공구',
-        options: ['망치', '드라이버 세트', '펜치', '플라이어', '렌치 세트', '톱', '끌', '줄(file)', '니퍼', '칼']
-    },
+    // {
+    //     name: '전동 공구',
+    //     options: ['전동드릴', '전동드라이버', '전동샌더', '전동톱', '전동대패', '전동그라인더', '전동해머', '전동믹서']
+    // },
     {
         name: '누수 장비',
-        options: ['청음식탐지기', '가스식탐지기', '디지털압력계', '열화상카메라', '상관식탐지기', '수분측정기', '파이프 카메라']
+        options: ['청음식탐지기', '가스식탐지기', '디지털압력계', '열화상카메라', '상관식탐지기', '수분측정기']
     },
     {
         name: '하수구 장비',
-        options: ['관통기', '배관석션기', '플렉스샤프트', '배관내시경', '관로탐지기', '고압세척기', '하수구 스네이크']
+        options: ['관통기', '배관석션기', '플렉스샤프트', '배관내시경', '관로탐지기', '고압세척기']
     },
-    {
-        name: '페인팅 장비',
-        options: ['페인트 스프레이건', '롤러', '붓', '페인트 트레이', '마스킹 테이프', '사포', '스크레이퍼']
-    },
-    {
-        name: '용접 장비',
-        options: ['아크 용접기', 'MIG 용접기', 'TIG 용접기', '용접 마스크', '용접봉', '그라인더']
-    },
-    {
-        name: '공조 장비',
-        options: ['진공펌프', '게이지 매니폴드', '냉매 회수기', '누설 탐지기', '파이프 벤더', '파이프 커터']
-    },
-    {
-        name: '전기 장비',
-        options: ['멀티미터', '클램프 미터', '전압 테스터', '와이어 스트리퍼', '압착기', '전선 릴']
-    },
-    {
-        name: '타일 작업 장비',
-        options: ['타일 커터', '그라우트 플로트', '노칭 트로웰', '타일 니퍼', '레벨링 시스템', '타일 스페이서']
-    },
-    {
-        name: '청소 장비',
-        options: ['고압 세척기', '스팀 클리너', '진공청소기', '바닥 폴리셔', '카펫 클리너', '에어 컴프레서']
-    },
+    // {
+    //     name: '페인팅 장비',
+    //     options: ['페인트 스프레이건', '롤러', '붓', '페인트 트레이', '마스킹 테이프', '사포', '스크레이퍼']
+    // },
+    // {
+    //     name: '용접 장비',
+    //     options: ['아크 용접기', 'MIG 용접기', 'TIG 용접기', '용접 마스크', '용접봉', '그라인더']
+    // },
+    // {
+    //     name: '공조 장비',
+    //     options: ['진공펌프', '게이지 매니폴드', '냉매 회수기', '누설 탐지기', '파이프 벤더', '파이프 커터']
+    // },
+    // {
+    //     name: '전기 장비',
+    //     options: ['멀티미터', '클램프 미터', '전압 테스터', '와이어 스트리퍼', '압착기', '전선 릴']
+    // },
+    // {
+    //     name: '타일 작업 장비',
+    //     options: ['타일 커터', '그라우트 플로트', '노칭 트로웰', '타일 니퍼', '레벨링 시스템', '타일 스페이서']
+    // },
+    // {
+    //     name: '청소 장비',
+    //     options: ['고압 세척기', '스팀 클리너', '진공청소기', '바닥 폴리셔', '카펫 클리너', '에어 컴프레서']
+    // },
 ];
 
-
+let isSubmitting = false;
 
 
 
@@ -1093,7 +1085,6 @@ function UpdateProfileUI(profile) {
     // Format dates
     const formatDate = (dateString) => new Date(dateString).toLocaleDateString('ko-KR');
     document.getElementById('created-at').textContent = profile.created_at ? formatDate(profile.created_at) : '알 수 없음';
-    document.getElementById('last-login').textContent = profile.last_login ? formatDate(profile.last_login) : '알 수 없음';
 
     // New fields
     document.getElementById('account-type').textContent = profile.account_type ?? '일반 사용자';
@@ -2309,6 +2300,11 @@ async function SetupPostOrderPage() {
 async function SubmitOrder(event) {
     event.preventDefault();
     
+    if (isSubmitting) {
+        console.log('Submission already in progress');
+        return;
+    }
+    
     if (!await CheckProfileCompleteness()) {
         ShowErrorMessage('오더를 등록하려면 프로필을 완성해야 합니다.');
         await FillTheBody('my-profile');
@@ -2317,6 +2313,10 @@ async function SubmitOrder(event) {
     }
 
     console.log('SubmitOrder function called');
+
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    isSubmitting = true;
 
     const title = document.getElementById('title').value;
     const category = document.getElementById('category').value;
@@ -2339,7 +2339,10 @@ async function SubmitOrder(event) {
     // Set fee to -1 if 'adjustable', otherwise use the input value
     const fee = feeType === 'adjustable' ? -1 : Number(feeInput.value);
 
+    const clientOrderId = Date.now().toString() + Math.random().toString(36).slice(2, 7);
+
     const orderData = {
+        clientOrderId,
         title,
         category,
         region: regions.find(r => r.id == regionId).name,
@@ -2378,6 +2381,9 @@ async function SubmitOrder(event) {
             errorMessage = '오더를 제출하는 중 오류가 발생했습니다. 모든 필드를 채워주세요.';
         }
         ShowErrorMessage(errorMessage);
+    } finally {
+        submitButton.disabled = false;
+        isSubmitting = false;
     }
 }
 
