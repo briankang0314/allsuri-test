@@ -2706,27 +2706,35 @@ async function SetupApplyForOrderPage() {
             </div>
 
             <div class="mb-4">
-                <h6 class="mb-3"><i class="bi bi-calendar-check me-2"></i>가능한 시간</h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0"><i class="bi bi-calendar-check me-2"></i>가능한 시간</h6>
+                    <button class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button>
+                </div>
                 ${availabilityHtml}
-                <button class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button>
             </div>
     
             <div class="mb-4">
-                <h6 class="mb-3"><i class="bi bi-clock-history me-2"></i>예상 완료 시간</h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>예상 완료 시간</h6>
+                    <button class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button>
+                </div>
                 <p class="text-muted">${estimatedCompletion}</p>
-                <button class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button>
             </div>
 
             <div class="mb-4">
-                <h6 class="mb-3"><i class="bi bi-card-text me-2"></i>소개</h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0"><i class="bi bi-card-text me-2"></i>소개</h6>
+                    <button class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button>
+                </div>
                 <p class="text-muted">${introduction}</p>
-                <button class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button>
             </div>
     
             <div class="mb-4">
-                <h6 class="mb-3"><i class="bi bi-tools me-2"></i>보유 장비</h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0"><i class="bi bi-tools me-2"></i>보유 장비</h6>
+                    <button class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button>
+                </div>
                 <div>${equipmentHtml}</div>
-                <button class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button>
             </div>
     
             ${questions.length > 0 ? `
