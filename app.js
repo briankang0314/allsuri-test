@@ -2662,7 +2662,6 @@ async function SetupApplyForOrderPage() {
             document.getElementById('introductionCharCount').textContent = applicationFormData.introduction ? applicationFormData.introduction.length : '0';
     
             // Equipment
-            GenerateEquipmentCheckboxes(); // Generate checkboxes before setting their values
             if (applicationFormData.equipment) {
                 applicationFormData.equipment.forEach(eq => {
                     const checkbox = document.querySelector(`input[type="checkbox"][value="${eq}"]`);
@@ -2878,6 +2877,10 @@ function GenerateEquipmentCheckboxes() {
     const equipmentContainer = document.querySelector('.equipment-group');
     equipmentContainer.innerHTML = ''; // Clear existing content
 
+    // Get current selections from applicationFormData
+    const applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
+    const selectedEquipment = applicationFormData?.equipment || [];
+
     equipmentGroups.forEach(group => {
         const groupDiv = document.createElement('div');
         groupDiv.className = 'mb-3';
@@ -2896,6 +2899,11 @@ function GenerateEquipmentCheckboxes() {
             input.value = option;
             input.id = `equipment-${group.name.replace(/\s+/g, '-')}-${index}`;
             input.setAttribute('aria-label', option);
+            
+            // Check if this option was previously selected
+            if (selectedEquipment.includes(option)) {
+                input.checked = true;
+            }
 
             const label = document.createElement('label');
             label.className = 'form-check-label';
