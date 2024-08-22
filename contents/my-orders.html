@@ -9,78 +9,100 @@
     <link rel="icon" href="/contents/_favicon.png" type="image/x-icon">
 
     <style>
-        body {
-            background-color: #f8f9fa;
+        :root {
+            --primary-bg-color: #f8f9fa;
+            --secondary-bg-color: #ffffff;
+            --primary-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 15px;
         }
+    
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--primary-bg-color);
+        }
+    
         .container-fluid {
             max-width: 1200px;
         }
+    
         .header {
-            background-color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background-color: var(--secondary-bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--primary-shadow);
             margin-bottom: 20px;
             padding: 15px 20px;
         }
+    
         .logo {
             width: 32px;
             height: 32px;
             transition: transform 0.3s ease;
         }
+    
         .logo:hover {
             transform: scale(1.1);
         }
+    
         .btn {
             border-radius: 20px;
             padding: 0.375rem 1rem;
             transition: all 0.3s ease;
         }
+    
         .btn:hover {
             transform: translateY(-2px);
         }
+    
         .btn-post-order {
             background-color: #FEE500;
             color: #000000;
             border: none;
         }
+    
         .btn-post-order:hover {
             background-color: #FFD700;
         }
+    
         .btn-refresh, .btn-outline-secondary {
-            background-color: #f8f9fa;
+            background-color: var(--primary-bg-color);
             color: #000000;
             border: 1px solid #ced4da;
         }
+    
         .btn-refresh:hover, .btn-outline-secondary:hover {
             background-color: #e9ecef;
         }
+    
         .filter-sort-controls {
-            background-color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background-color: var(--secondary-bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--primary-shadow);
             padding: 20px;
             margin-bottom: 20px;
         }
+    
         .order-card {
             border: none;
-            border-radius: 15px;
+            border-radius: var(--border-radius);
             transition: all 0.3s ease;
             margin-bottom: 1rem;
+            cursor: pointer;
         }
+    
         .order-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: var(--primary-shadow);
         }
-        .modal-content {
-            border-radius: 15px;
-        }
+    
         @media (max-width: 576px) {
             .header {
                 padding: 10px 15px;
             }
+    
             .header h1 {
                 font-size: 1.5rem;
             }
+    
             .btn {
                 font-size: 0.9rem;
                 padding: 0.3rem 0.8rem;
