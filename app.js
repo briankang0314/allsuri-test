@@ -2909,16 +2909,23 @@ function GenerateEquipmentCheckboxes() {
     const equipmentContainer = document.querySelector('.equipment-group');
     equipmentContainer.innerHTML = ''; // Clear existing content
 
+    // Create a row to hold our two columns
+    const row = document.createElement('div');
+    row.className = 'row g-2';
+
     // Get current selections from applicationFormData
     const applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
     const selectedEquipment = applicationFormData?.equipment || [];
 
     equipmentGroups.forEach((group, groupIndex) => {
+        const col = document.createElement('div');
+        col.className = 'col-6';
+
         const groupDiv = document.createElement('div');
-        groupDiv.className = 'card mb-2';
+        groupDiv.className = 'card h-100';
         
         const groupHeader = document.createElement('div');
-        groupHeader.className = 'card-header clickable d-flex justify-content-between align-items-center';
+        groupHeader.className = 'card-header clickable';
         groupHeader.id = `heading${groupIndex}`;
         groupHeader.setAttribute('data-bs-toggle', 'collapse');
         groupHeader.setAttribute('data-bs-target', `#collapse${groupIndex}`);
@@ -2929,12 +2936,7 @@ function GenerateEquipmentCheckboxes() {
         groupTitle.className = 'mb-0';
         groupTitle.textContent = group.name;
 
-        const chevronIcon = document.createElement('span');
-        chevronIcon.className = 'chevron-icon';
-        chevronIcon.innerHTML = '&#9660;';
-
         groupHeader.appendChild(groupTitle);
-        groupHeader.appendChild(chevronIcon);
         groupDiv.appendChild(groupHeader);
 
         const collapseDiv = document.createElement('div');
@@ -2972,18 +2974,11 @@ function GenerateEquipmentCheckboxes() {
 
         collapseDiv.appendChild(cardBody);
         groupDiv.appendChild(collapseDiv);
-        equipmentContainer.appendChild(groupDiv);
+        col.appendChild(groupDiv);
+        row.appendChild(col);
     });
 
-    // Add event listeners to toggle chevron icon
-    equipmentContainer.querySelectorAll('.card-header').forEach(header => {
-        header.addEventListener('click', function() {
-            const chevron = this.querySelector('.chevron-icon');
-            chevron.style.transform = this.getAttribute('aria-expanded') === 'true' 
-                ? 'rotate(0deg)' 
-                : 'rotate(180deg)';
-        });
-    });
+    equipmentContainer.appendChild(row);
 
     // Expand the first group with a selected item
     const collapsibles = equipmentContainer.querySelectorAll('.collapse');
@@ -2993,7 +2988,6 @@ function GenerateEquipmentCheckboxes() {
             collapse.classList.add('show');
             const header = collapse.previousElementSibling;
             header.setAttribute('aria-expanded', 'true');
-            header.querySelector('.chevron-icon').style.transform = 'rotate(180deg)';
             return false; // Break the loop after expanding the first group with checked items
         }
     });
