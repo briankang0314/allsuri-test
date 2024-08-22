@@ -2909,31 +2909,36 @@ function GenerateEquipmentCheckboxes() {
     const equipmentContainer = document.querySelector('.equipment-group');
     equipmentContainer.innerHTML = ''; // Clear existing content
 
+    // Create a row to hold our two columns
+    const row = document.createElement('div');
+    row.className = 'row gx-2';
+
     // Get current selections from applicationFormData
     const applicationFormData = JSON.parse(localStorage.getItem('applicationFormData'));
     const selectedEquipment = applicationFormData?.equipment || [];
 
     equipmentGroups.forEach((group, groupIndex) => {
+        const col = document.createElement('div');
+        col.className = 'col-md-6 mb-2';
+
         const groupDiv = document.createElement('div');
-        groupDiv.className = 'card mb-2';
+        groupDiv.className = 'card h-100';
         
         const groupHeader = document.createElement('div');
-        groupHeader.className = 'card-header';
+        groupHeader.className = 'card-header clickable';
         groupHeader.id = `heading${groupIndex}`;
+        groupHeader.setAttribute('data-bs-toggle', 'collapse');
+        groupHeader.setAttribute('data-bs-target', `#collapse${groupIndex}`);
+        groupHeader.setAttribute('aria-expanded', 'false');
+        groupHeader.setAttribute('aria-controls', `collapse${groupIndex}`);
 
         const groupTitle = document.createElement('h5');
-        groupTitle.className = 'mb-0';
-        
-        const collapseButton = document.createElement('button');
-        collapseButton.className = 'btn btn-link';
-        collapseButton.type = 'button';
-        collapseButton.setAttribute('data-bs-toggle', 'collapse');
-        collapseButton.setAttribute('data-bs-target', `#collapse${groupIndex}`);
-        collapseButton.setAttribute('aria-expanded', 'false');
-        collapseButton.setAttribute('aria-controls', `collapse${groupIndex}`);
-        collapseButton.textContent = group.name;
+        groupTitle.className = 'mb-0 d-flex justify-content-between align-items-center';
+        groupTitle.innerHTML = `
+            ${group.name}
+            <span class="chevron-icon">&#9660;</span>
+        `;
 
-        groupTitle.appendChild(collapseButton);
         groupHeader.appendChild(groupTitle);
         groupDiv.appendChild(groupHeader);
 
@@ -2973,15 +2978,31 @@ function GenerateEquipmentCheckboxes() {
 
         collapseDiv.appendChild(cardBody);
         groupDiv.appendChild(collapseDiv);
-        equipmentContainer.appendChild(groupDiv);
+        col.appendChild(groupDiv);
+        row.appendChild(col);
     });
 
-    // Add an event listener to expand the first group with a selected item
+    equipmentContainer.appendChild(row);
+
+    // Add event listeners to toggle chevron icon
+    equipmentContainer.querySelectorAll('.card-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const chevron = this.querySelector('.chevron-icon');
+            chevron.style.transform = this.getAttribute('aria-expanded') === 'true' 
+                ? 'rotate(0deg)' 
+                : 'rotate(180deg)';
+        });
+    });
+
+    // Expand the first group with a selected item
     const collapsibles = equipmentContainer.querySelectorAll('.collapse');
     collapsibles.forEach((collapse, index) => {
         const hasCheckedItems = collapse.querySelector('input:checked');
         if (hasCheckedItems) {
             collapse.classList.add('show');
+            const header = collapse.previousElementSibling;
+            header.setAttribute('aria-expanded', 'true');
+            header.querySelector('.chevron-icon').style.transform = 'rotate(180deg)';
             return false; // Break the loop after expanding the first group with checked items
         }
     });

@@ -150,23 +150,33 @@
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
-        .equipment-group .card-header {
+        .equipment-group .card-header.clickable {
+            cursor: pointer;
             background-color: #f8f9fa;
+            transition: background-color 0.2s ease;
         }
 
-        .equipment-group .btn-link {
-            color: #0056b3;
-            text-decoration: none;
+        .equipment-group .card-header.clickable:hover {
+            background-color: #e9ecef;
         }
 
-        .equipment-group .btn-link:hover,
-        .equipment-group .btn-link:focus {
-            text-decoration: underline;
+        .equipment-group .chevron-icon {
+            transition: transform 0.3s ease;
         }
 
         .equipment-group .card-body {
             max-height: 300px;
             overflow-y: auto;
+        }
+
+        .equipment-group .card {
+            height: 100%;
+        }
+
+        @media (max-width: 767px) {
+            .equipment-group .col-md-6 {
+                margin-bottom: 1rem;
+            }
         }
     </style>
 </head>
