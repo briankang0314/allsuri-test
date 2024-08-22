@@ -103,7 +103,6 @@ const loadingIndicatorHTML = `
   </div>
 `;
 
-// Update the loadingIndicatorCSS variable
 const loadingIndicatorCSS = `
   .loading-overlay {
     position: fixed;
@@ -155,6 +154,21 @@ let currentPage = 1;
 const postsPerPage = 10;
 
 let currentOrderId = null;
+
+const equipmentGroups = [
+    {
+        name: '전동 공구',
+        options: ['전동드릴', '전동드라이버', '전동샌더']
+    },
+    {
+        name: '측정 도구',
+        options: ['수평계', '줄자', '레이저 거리측정기']
+    },
+    {
+        name: '수공구',
+        options: ['망치', '드라이버 세트', '펜치']
+    }
+];
 
 
 
@@ -2400,6 +2414,8 @@ async function SetupApplyForOrderPage() {
     
         if (step === 1) {
             initializeCalendar();
+        } else if (step === 4) {
+            GenerateEquipmentCheckboxes();
         } else if (step === steps.length - 1) {
             updatePreview();
         }
@@ -2510,7 +2526,7 @@ async function SetupApplyForOrderPage() {
             availability: GetAvailabilityData(),
             estimated_completion: estimatedCompletion,
             introduction: introductionTextarea.value,
-            equipment: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+            equipment: Array.from(document.querySelectorAll('.equipment-group input[type="checkbox"]:checked')).map(cb => cb.value),
             otherEquipment: document.getElementById('otherEquipment').value,
             questions: Array.from(questionTextareas.querySelectorAll('textarea')).map(ta => ({
                 category: ta.dataset.category,
@@ -2646,6 +2662,7 @@ async function SetupApplyForOrderPage() {
             document.getElementById('introductionCharCount').textContent = applicationFormData.introduction ? applicationFormData.introduction.length : '0';
     
             // Equipment
+            GenerateEquipmentCheckboxes(); // Generate checkboxes before setting their values
             if (applicationFormData.equipment) {
                 applicationFormData.equipment.forEach(eq => {
                     const checkbox = document.querySelector(`input[type="checkbox"][value="${eq}"]`);
@@ -2725,7 +2742,7 @@ async function SetupApplyForOrderPage() {
         const location = document.getElementById('location').value;
         const estimatedCompletion = document.getElementById('estimatedCompletion').value;
         const introduction = document.getElementById('introduction').value;
-        const equipmentChecked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        const equipmentChecked = Array.from(document.querySelectorAll('.equipment-group input[type="checkbox"]:checked')).map(cb => cb.value);
         const otherEquipment = document.getElementById('otherEquipment').value;
         const questions = Array.from(document.querySelectorAll('#questionTextareas textarea')).map(ta => ({
             category: ta.dataset.category,
@@ -2856,6 +2873,44 @@ function GetAvailabilityData() {
         return times.map(time => ({ date, time }));
     });
 }
+
+function GenerateEquipmentCheckboxes() {
+    const equipmentContainer = document.querySelector('.equipment-group');
+    equipmentContainer.innerHTML = ''; // Clear existing content
+
+    equipmentGroups.forEach(group => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'mb-3';
+        
+        const groupTitle = document.createElement('h5');
+        groupTitle.textContent = group.name;
+        groupDiv.appendChild(groupTitle);
+
+        group.options.forEach((option, index) => {
+            const checkboxDiv = document.createElement('div');
+            checkboxDiv.className = 'form-check';
+
+            const input = document.createElement('input');
+            input.className = 'form-check-input';
+            input.type = 'checkbox';
+            input.value = option;
+            input.id = `equipment-${group.name.replace(/\s+/g, '-')}-${index}`;
+            input.setAttribute('aria-label', option);
+
+            const label = document.createElement('label');
+            label.className = 'form-check-label';
+            label.htmlFor = input.id;
+            label.textContent = option;
+
+            checkboxDiv.appendChild(input);
+            checkboxDiv.appendChild(label);
+            groupDiv.appendChild(checkboxDiv);
+        });
+
+        equipmentContainer.appendChild(groupDiv);
+    });
+}
+
 
 async function SubmitApplication() {
     if (!await CheckProfileCompleteness()) {
