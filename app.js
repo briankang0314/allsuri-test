@@ -1824,8 +1824,7 @@ function ShowMyApplicationDetails(application) {
                 </div>`;
     }).join('');
 
-    const equipmentHtml = application.equipment.map(eq => `<span class="badge bg-light text-dark me-2 mb-2">${eq}</span>`).join('') + 
-        (application.otherEquipment ? `<span class="badge bg-light text-dark me-2 mb-2">${application.otherEquipment}</span>` : '');
+    const equipmentHtml = application.equipment.map(eq => `<span class="badge bg-light text-dark me-2 mb-2">${eq}</span>`).join('');
 
     const questionsHtml = application.questions.map(q => `
         <div class="mb-3">
@@ -2082,8 +2081,7 @@ function ShowApplicationDetails(application) {
                 </div>`;
     }).join('');
 
-    const equipmentHtml = application.equipment.map(eq => `<span class="badge bg-light text-dark me-2 mb-2">${eq}</span>`).join('') + 
-        (application.otherEquipment ? `<span class="badge bg-light text-dark me-2 mb-2">${application.otherEquipment}</span>` : '');
+    const equipmentHtml = application.equipment.map(eq => `<span class="badge bg-light text-dark me-2 mb-2">${eq}</span>`).join('');
 
     const questionsHtml = application.questions.map(q => `
         <div class="mb-3">
@@ -2409,7 +2407,6 @@ function InitializeApplicationForm(orderId) {
         estimated_completion: '',
         introduction: '',
         equipment: [],
-        otherEquipment: '',
         questions: [],
         currentStep: 0
     };
@@ -2560,7 +2557,6 @@ async function SetupApplyForOrderPage() {
             estimated_completion: estimatedCompletion,
             introduction: introductionTextarea.value,
             equipment: Array.from(document.querySelectorAll('.equipment-group input[type="checkbox"]:checked')).map(cb => cb.value),
-            otherEquipment: document.getElementById('otherEquipment').value,
             questions: Array.from(questionTextareas.querySelectorAll('textarea')).map(ta => ({
                 category: ta.dataset.category,
                 text: ta.value
@@ -2701,7 +2697,6 @@ async function SetupApplyForOrderPage() {
                     if (checkbox) checkbox.checked = true;
                 });
             }
-            document.getElementById('otherEquipment').value = applicationFormData.otherEquipment || '';
     
             // Questions
             if (applicationFormData.questions) {
@@ -2775,7 +2770,6 @@ async function SetupApplyForOrderPage() {
         const estimatedCompletion = document.getElementById('estimatedCompletion').value;
         const introduction = document.getElementById('introduction').value;
         const equipmentChecked = Array.from(document.querySelectorAll('.equipment-group input[type="checkbox"]:checked')).map(cb => cb.value);
-        const otherEquipment = document.getElementById('otherEquipment').value;
         const questions = Array.from(document.querySelectorAll('#questionTextareas textarea')).map(ta => ({
             category: ta.dataset.category,
             text: ta.value
@@ -2788,9 +2782,8 @@ async function SetupApplyForOrderPage() {
                     </div>`;
         }).join('');
     
-        const equipmentHtml = equipmentChecked.map(eq => `<span class="badge bg-light text-dark me-2 mb-2">${eq}</span>`).join('') + 
-            (otherEquipment ? `<span class="badge bg-light text-dark me-2 mb-2">${otherEquipment}</span>` : '');
-    
+        const equipmentHtml = equipmentChecked.map(eq => `<span class="badge bg-light text-dark me-2 mb-2">${eq}</span>`).join('');
+
         const questionsHtml = questions.map(q => `
             <div class="mb-3">
                 <strong class="d-block mb-1">${q.category}</strong>
