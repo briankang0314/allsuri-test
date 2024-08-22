@@ -2571,6 +2571,7 @@ async function SetupApplyForOrderPage() {
     const introductionCharCount = document.getElementById('introductionCharCount');
     const questionCategory = document.getElementById('questionCategory');
     const questionTextareas = document.getElementById('questionTextareas');
+    const selectedCategories = new Set();
 
     introductionTextarea.addEventListener('input', function() {
         const currentLength = this.value.length;
@@ -2583,14 +2584,40 @@ async function SetupApplyForOrderPage() {
 
     questionCategory.addEventListener('change', function() {
         const category = this.value;
-        if (category) {
+        if (category && !selectedCategories.has(category)) {
             const textarea = document.createElement('textarea');
             textarea.className = 'form-control mt-2';
             textarea.rows = 3;
             textarea.placeholder = `${this.options[this.selectedIndex].text}에 대한 질문을 입력해주세요.`;
             textarea.dataset.category = category;
-            questionTextareas.appendChild(textarea);
-            this.selectedIndex = 0; // Reset select to default option
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mb-3 question-wrapper';
+            
+            const label = document.createElement('label');
+            label.textContent = this.options[this.selectedIndex].text;
+            label.className = 'form-label';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = '삭제';
+            removeBtn.className = 'btn btn-sm btn-outline-danger ms-2';
+            removeBtn.type = 'button';
+            removeBtn.addEventListener('click', function() {
+                wrapper.remove();
+                selectedCategories.delete(category);
+                questionCategory.querySelector(`option[value="${category}"]`).disabled = false;
+                saveProgress();
+            });
+
+            wrapper.appendChild(label);
+            wrapper.appendChild(removeBtn);
+            wrapper.appendChild(textarea);
+
+            questionTextareas.appendChild(wrapper);
+            selectedCategories.add(category);
+            this.querySelector(`option[value="${category}"]`).disabled = true;
+            this.selectedIndex = 0;
+            saveProgress();
         }
     });
 
@@ -2631,12 +2658,37 @@ async function SetupApplyForOrderPage() {
             if (applicationFormData.questions) {
                 const questionTextareas = document.getElementById('questionTextareas');
                 applicationFormData.questions.forEach(q => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'mb-3 question-wrapper';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = questionCategory.querySelector(`option[value="${q.category}"]`).text;
+                    label.className = 'form-label';
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = '삭제';
+                    removeBtn.className = 'btn btn-sm btn-outline-danger ms-2';
+                    removeBtn.type = 'button';
+                    removeBtn.addEventListener('click', function() {
+                        wrapper.remove();
+                        selectedCategories.delete(q.category);
+                        questionCategory.querySelector(`option[value="${q.category}"]`).disabled = false;
+                        saveProgress();
+                    });
+
                     const textarea = document.createElement('textarea');
                     textarea.className = 'form-control mt-2';
                     textarea.rows = 3;
                     textarea.value = q.text;
                     textarea.dataset.category = q.category;
-                    questionTextareas.appendChild(textarea);
+
+                    wrapper.appendChild(label);
+                    wrapper.appendChild(removeBtn);
+                    wrapper.appendChild(textarea);
+
+                    questionTextareas.appendChild(wrapper);
+                    selectedCategories.add(q.category);
+                    questionCategory.querySelector(`option[value="${q.category}"]`).disabled = true;
                 });
             }
     
