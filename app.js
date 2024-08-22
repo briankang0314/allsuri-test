@@ -2470,6 +2470,9 @@ async function SetupApplyForOrderPage() {
             return acc;
         }, {});
     
+        // Sort the selected dates
+        selectedDates.sort((a, b) => a - b);
+    
         availabilityList.innerHTML = '';
         selectedDates.forEach(date => {
             const dateString = formatDate(date);
@@ -2669,6 +2672,7 @@ async function SetupApplyForOrderPage() {
             if (applicationFormData.availability && applicationFormData.availability.length > 0) {
                 initializeCalendar();
                 const dates = applicationFormData.availability.map(a => new Date(a.date));
+                dates.sort((a, b) => a - b); // Sort the dates
                 calendar.setDate(dates);
                 updateAvailabilityList(dates);
             }
