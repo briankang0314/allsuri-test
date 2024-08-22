@@ -2703,31 +2703,30 @@ async function SetupApplyForOrderPage() {
                 <div class="d-flex align-items-center mb-2">
                     <span class="me-3"><strong>지역:</strong> ${location}</span>
                 </div>
-                <button class="btn btn-sm btn-outline-primary edit-section" data-section="basic-info">수정</button>
             </div>
-    
+
             <div class="mb-4">
-                <h6 class="mb-3"><i class="bi bi-card-text me-2"></i>소개</h6>
-                <p class="text-muted">${introduction}</p>
-                <button class="btn btn-sm btn-outline-primary edit-section" data-section="introduction">수정</button>
+                <h6 class="mb-3"><i class="bi bi-calendar-check me-2"></i>가능한 시간</h6>
+                ${availabilityHtml}
+                <button class="btn btn-sm btn-outline-primary edit-section" data-section="step2">수정</button>
             </div>
     
             <div class="mb-4">
                 <h6 class="mb-3"><i class="bi bi-clock-history me-2"></i>예상 완료 시간</h6>
                 <p class="text-muted">${estimatedCompletion}</p>
-                <button class="btn btn-sm btn-outline-primary edit-section" data-section="estimated-completion">수정</button>
+                <button class="btn btn-sm btn-outline-primary edit-section" data-section="step3">수정</button>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="mb-3"><i class="bi bi-card-text me-2"></i>소개</h6>
+                <p class="text-muted">${introduction}</p>
+                <button class="btn btn-sm btn-outline-primary edit-section" data-section="step4">수정</button>
             </div>
     
             <div class="mb-4">
                 <h6 class="mb-3"><i class="bi bi-tools me-2"></i>보유 장비</h6>
                 <div>${equipmentHtml}</div>
-                <button class="btn btn-sm btn-outline-primary edit-section" data-section="equipment">수정</button>
-            </div>
-    
-            <div class="mb-4">
-                <h6 class="mb-3"><i class="bi bi-calendar-check me-2"></i>가능한 시간</h6>
-                ${availabilityHtml}
-                <button class="btn btn-sm btn-outline-primary edit-section" data-section="availability">수정</button>
+                <button class="btn btn-sm btn-outline-primary edit-section" data-section="step5">수정</button>
             </div>
     
             ${questions.length > 0 ? `
