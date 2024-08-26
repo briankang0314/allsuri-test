@@ -21,17 +21,9 @@
 		<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
 		<script type="module">
 			import { Start } from "/app.js";
-			import SendbirdChat, { OpenChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@latest';
-	  
-			const sb = SendbirdChat.init({
-			  appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
-			  modules: [new OpenChannelModule()],
-			});
-	  
-			window.onload = async () => {
-			  await Start();
-			};
-		  </script>
+
+			window.onload = async () => {await Start();};
+		</script>
 	</head>
 	<body>
 	</body>
