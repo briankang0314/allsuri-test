@@ -1,5 +1,7 @@
 // Exppoerted functions: Start
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+let sb;
+
 export async function Start()
 {
     if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
@@ -12,6 +14,14 @@ export async function Start()
         
         if (window.location.pathname === '/oauth/callback') {await LoginByKakao(); return;}
 
+        // init sendbird sdk
+        sb = SendbirdChat.init({
+            appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
+            modules: [
+                new GroupChannelModule(),
+            ],
+        });
+
         // check if not configured
         if (localStorage.getItem('user') == null || localStorage.getItem('tokens') == null)
         {
@@ -21,6 +31,13 @@ export async function Start()
         else
         {
             if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;}
+        }
+        
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            await ConnectToSendbird(user.user_id);
+        } catch (error) {
+            console.error('Error connecting to Sendbird:', error);
         }
 
         // Show home
@@ -35,10 +52,23 @@ export async function Start()
     }
 }
 
+async function ConnectToSendbird(userId) {
+    try {
+        const user = await sb.connect(userId);
+        console.log('Successfully connected to Sendbird', user);
+        return user;
+    } catch (error) {
+        console.error('Error connecting to Sendbird:', error);
+        throw error;
+    }
+}
+
 // Imports
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
+import SendbirdChat from '@sendbird/chat'
+import { GroupChannelModule, SendbirdOpenChat } from '@sendbird/chat/openChannel';
 
 // Global Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -195,7 +225,6 @@ const equipmentGroups = [
 ];
 
 let isSubmitting = false;
-
 
 
 

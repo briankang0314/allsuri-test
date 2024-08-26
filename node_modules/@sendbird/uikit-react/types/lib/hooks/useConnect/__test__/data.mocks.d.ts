@@ -1,0 +1,16 @@
+import { User } from '@sendbird/chat';
+import { ConnectTypes, DisconnectSdkTypes, SetupConnectionTypes, StaticTypes, TriggerTypes } from '../types';
+export declare const mockUser: User;
+export declare const mockUser2: User;
+export declare const mockSdk: import("@sendbird/chat").default;
+export declare const mockSdkDispatcher: import("../types").SdkDispatcher;
+export declare const mockUserDispatcher: import("../types").UserDispatcher;
+export declare const mockAppInfoDispatcher: import("../types").AppInfoDispatcher;
+export declare const mockInitDashboardConfigs: (sdk: import("@sendbird/chat").default) => Promise<void>;
+export declare const defaultStaticParams: StaticTypes;
+export declare const defaultTriggerParams: TriggerTypes;
+export declare const defaultConnectParams: ConnectTypes;
+export declare const defaultSetupConnectionParams: SetupConnectionTypes;
+export declare const defaultDisconnectSdkParams: DisconnectSdkTypes;
+export declare function generateDisconnectSdkParams(overrides?: Partial<DisconnectSdkTypes>): DisconnectSdkTypes;
+export declare function generateSetUpConnectionParams(overrides?: Partial<SetupConnectionTypes>): SetupConnectionTypes;

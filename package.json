@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@sendbird/chat": "^4.14.1",
+    "@sendbird/uikit-react": "^3.14.14"
+  }
+}

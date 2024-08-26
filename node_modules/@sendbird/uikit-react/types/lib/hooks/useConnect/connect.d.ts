@@ -1,0 +1,2 @@
+import { ConnectTypes } from './types';
+export declare function connect({ logger, sdkDispatcher, userDispatcher, appInfoDispatcher, initDashboardConfigs, userId, appId, isNewApp, customApiHost, customWebSocketHost, configureSession, nickname, profileUrl, accessToken, sdk, sdkInitParams, customExtensionParams, isMobile, eventHandlers, isUserIdUsedForNickname, initializeMessageTemplatesInfo, }: ConnectTypes): Promise<void>;
