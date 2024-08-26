@@ -7,7 +7,7 @@ redirects = []
 [functions."*"]
 
 [build]
-publish = "dist"
+publish = "."
 publishOrigin = "default"
 
 [build.environment]
