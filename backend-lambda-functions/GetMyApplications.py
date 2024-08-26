@@ -62,7 +62,7 @@ def get_user_applications(user_id, page, limit, filters, sort):
     logger.info(f"Fetching applications for user_id: {user_id}")
     try:
         key_condition_expression = Key('applicant_id').eq(user_id)
-        
+
         query_params = {
             'IndexName': 'UserOrderIndex',
             'KeyConditionExpression': key_condition_expression,
@@ -86,16 +86,20 @@ def get_user_applications(user_id, page, limit, filters, sort):
                 query_params['ExclusiveStartKey'] = last_evaluated_key
 
         response = applications_table.query(**query_params)
-        
+
         applications = response.get('Items', [])
         logger.info(f"Retrieved {len(applications)} applications")
 
-        # Sort applications if needed
-        if sort == 'created_at':
-            applications.sort(key=lambda x: x['created_at'], reverse=True)
-
         # Fetch order details for each application
         applications_with_order_details = add_order_details(applications)
+
+        # Sort applications based on the requested sort parameter
+        if sort == 'status':
+            # Define a custom sorting order for status
+            status_order = {'accepted': 0, 'pending': 1, 'rejected': 2}
+            applications_with_order_details.sort(key=lambda x: status_order.get(x['status'], 3))
+        elif sort == 'created_at':
+            applications_with_order_details.sort(key=lambda x: x['created_at'], reverse=True)
 
         # Get total count
         total_count = get_total_count(user_id, filters)
