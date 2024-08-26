@@ -7,7 +7,7 @@ redirects = []
 [functions."*"]
 
 [build]
-publish = "/Users/byungsookang/Desktop/Projects/allsuri-test"
+publish = "dist"
 publishOrigin = "default"
 
 [build.environment]
