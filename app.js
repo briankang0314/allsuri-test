@@ -33,12 +33,12 @@ export async function Start()
             if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;}
         }
         
-        try {
-            const user = JSON.parse(localStorage.getItem('user'));
-            await ConnectToSendbird(user.user_id);
-        } catch (error) {
-            console.error('Error connecting to Sendbird:', error);
-        }
+        // try {
+        //     const user = JSON.parse(localStorage.getItem('user'));
+        //     await ConnectToSendbird(user.user_id);
+        // } catch (error) {
+        //     console.error('Error connecting to Sendbird:', error);
+        // }
 
         // Show home
         await FillTheBody('home');
