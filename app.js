@@ -15,12 +15,12 @@ export async function Start()
         if (window.location.pathname === '/oauth/callback') {await LoginByKakao(); return;}
 
         // init sendbird sdk
-        sb = SendbirdChat.init({
-            appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
-            modules: [
-                new GroupChannelModule(),
-            ],
-        });
+        // sb = SendbirdChat.init({
+        //     appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
+        //     modules: [
+        //         new GroupChannelModule(),
+        //     ],
+        // });
 
         // check if not configured
         if (localStorage.getItem('user') == null || localStorage.getItem('tokens') == null)
@@ -33,12 +33,12 @@ export async function Start()
             if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;}
         }
         
-        try {
-            const user = JSON.parse(localStorage.getItem('user'));
-            await ConnectToSendbird(user.user_id);
-        } catch (error) {
-            console.error('Error connecting to Sendbird:', error);
-        }
+        // try {
+        //     const user = JSON.parse(localStorage.getItem('user'));
+        //     await ConnectToSendbird(user.user_id);
+        // } catch (error) {
+        //     console.error('Error connecting to Sendbird:', error);
+        // }
 
         // Show home
         await FillTheBody('home');
