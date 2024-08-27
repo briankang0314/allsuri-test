@@ -1,5 +1,7 @@
 // Exppoerted functions: Start
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+let sb;
+
 export async function Start()
 {
     if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
@@ -11,6 +13,14 @@ export async function Start()
         Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
         
         if (window.location.pathname === '/oauth/callback') {await LoginByKakao(); return;}
+
+        // init sendbird sdk
+        sb = SendbirdChat.init({
+            appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
+            modules: [
+                new GroupChannelModule(),
+            ],
+        });
 
         // check if not configured
         if (localStorage.getItem('user') == null || localStorage.getItem('tokens') == null)
@@ -25,11 +35,7 @@ export async function Start()
         
         try {
             const user = JSON.parse(localStorage.getItem('user'));
-            if (user && user.user_id) {
-                await ConnectToSendbird(user.user_id);
-            } else {
-                console.log('No user found in localStorage');
-            }
+            await ConnectToSendbird(user.user_id);
         } catch (error) {
             console.error('Error connecting to Sendbird:', error);
         }
@@ -47,12 +53,8 @@ export async function Start()
 }
 
 async function ConnectToSendbird(userId) {
-    if (!window.sb) {
-        console.error('Sendbird SDK not initialized');
-        return;
-    }
     try {
-        const user = await window.sb.connect(userId);
+        const user = await sb.connect(userId);
         console.log('Successfully connected to Sendbird', user);
         return user;
     } catch (error) {
