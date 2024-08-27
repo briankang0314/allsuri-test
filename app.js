@@ -69,7 +69,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebas
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
 import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
 console.log('imported sendbirdchat in app.js', SendbirdChat);
-import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
+import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/groupChannel.min.js';
 console.log('imported GroupChannelModule in app.js', GroupChannelModule);
 
 // Global Variables
