@@ -33,12 +33,12 @@ export async function Start()
             if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;}
         }
         
-        // try {
-        //     const user = JSON.parse(localStorage.getItem('user'));
-        //     await ConnectToSendbird(user.user_id);
-        // } catch (error) {
-        //     console.error('Error connecting to Sendbird:', error);
-        // }
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            await ConnectToSendbird(user.user_id);
+        } catch (error) {
+            console.error('Error connecting to Sendbird:', error);
+        }
 
         // Show home
         await FillTheBody('home');
@@ -52,25 +52,24 @@ export async function Start()
     }
 }
 
-// async function ConnectToSendbird(userId) {
-//     try {
-//         const user = await sb.connect(userId);
-//         console.log('Successfully connected to Sendbird', user);
-//         return user;
-//     } catch (error) {
-//         console.error('Error connecting to Sendbird:', error);
-//         throw error;
-//     }
-// }
+async function ConnectToSendbird(userId) {
+    try {
+        const user = await sb.connect(userId);
+        console.log('Successfully connected to Sendbird', user);
+        console.log('user id: ', userId);
+        return user;
+    } catch (error) {
+        console.error('Error connecting to Sendbird:', error);
+        throw error;
+    }
+}
 
 // Imports
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
 import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
-console.log('imported sendbirdchat in app.js', SendbirdChat);
 import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/groupChannel.min.js';
-console.log('imported GroupChannelModule in app.js', GroupChannelModule);
 
 // Global Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -273,35 +272,52 @@ async function FillTheBody(contentName, params = {}) {
                 case 'notification':
                     document.getElementById('default').style.display = 'none';
                     document.getElementById('denied').style.display = 'none';
-
+                
                     switch (Notification.permission) {
                         case 'default':
                             document.getElementById('default').style.display = 'block';
-                            document.getElementById('button_notification_allow').addEventListener('click', async function () {
+                            const allowButton = document.getElementById('button_notification_allow');
+                            allowButton.addEventListener('click', async function () {
                                 try {
                                     const permission = await Notification.requestPermission();
                                     if (permission === 'granted') {
                                         console.log('Notification permission granted');
-                                        document.getElementById('button_notification_allow').style.display = 'none';
+                                        allowButton.style.display = 'none';
                                         document.getElementById('device_token').style.display = 'block';
-
+                
                                         await SaveDeviceToken();
-                                        location.reload();
+                                        setTimeout(() => {
+                                            ShowSuccessMessage('알림 설정이 완료되었습니다.');
+                                            FillTheBody('home');
+                                        }, 2000);
                                     } else {
                                         console.log('Notification permission denied');
+                                        document.getElementById('default').style.display = 'none';
+                                        document.getElementById('denied').style.display = 'block';
                                     }
                                 } catch (error) {
                                     console.error('Error requesting notification permission:', error);
                                     ShowErrorMessage('알림 권한 요청 중 오류가 발생했습니다. 다시 시도해주세요.');
                                 }
                             });
-
                             break;
                         case 'denied':
                             document.getElementById('denied').style.display = 'block';
+                            const retryButton = document.getElementById('retry-button');
+                            if (retryButton) {
+                                retryButton.addEventListener('click', () => {
+                                    window.location.reload();
+                                });
+                            }
+                            break;
+                        case 'granted':
+                            console.log('Notification permission already granted');
+                            ShowSuccessMessage('알림 권한이 이미 허용되어 있습니다.');
+                            setTimeout(() => {
+                                FillTheBody('home');
+                            }, 1500);
                             break;
                     }
-
                     break;
                 case 'login':
                     const kakaoLoginBtn = document.getElementById('kakao-login-btn');

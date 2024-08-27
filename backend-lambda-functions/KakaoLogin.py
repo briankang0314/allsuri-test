@@ -5,7 +5,7 @@ import urllib.parse
 import os
 import boto3
 from botocore.exceptions import ClientError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 
 logger = logging.getLogger()
@@ -17,6 +17,8 @@ KAKAO_REDIRECT_URI = os.environ.get('KAKAO_REDIRECT_URI')
 # Initialize DynamoDB client
 dynamodb = boto3.resource('dynamodb')
 users_table = dynamodb.Table('Users')
+
+tz = timezone(timedelta(hours=9))
 
 def lambda_handler(event, context):
     logger.info(f"Received event: {json.dumps(event)}")
@@ -79,7 +81,7 @@ def get_user_info(access_token):
 def save_user_to_db(kakao_user_info, tokens, device_token):
     try:
         kakao_id = str(kakao_user_info['id'])
-        current_time = datetime.now().isoformat()
+        current_time = datetime.now(tz=tz).isoformat()
 
         # Check if a user with this Kakao ID already exists
         existing_user = get_user_by_kakao_id(kakao_id)
@@ -114,7 +116,7 @@ def get_user_by_kakao_id(kakao_id):
 
 def update_existing_user(user_id, kakao_user_info, tokens, device_token, current_time):
     try:
-        expiration_time = datetime.now() + timedelta(seconds=tokens['expires_in'])
+        expiration_time = datetime.now(tz=tz) + timedelta(seconds=tokens['expires_in'])
         
         update_expression = "SET nickname = :n, email = :e, profile_image_url = :p, " \
                             "thumbnail_image_url = :t, access_token = :a, " \
@@ -154,7 +156,7 @@ def update_existing_user(user_id, kakao_user_info, tokens, device_token, current
 def create_new_user(kakao_id, kakao_user_info, tokens, device_token, current_time):
     try:
         user_id = str(uuid.uuid4())
-        expiration_time = datetime.now() + timedelta(seconds=tokens['expires_in'])
+        expiration_time = datetime.now(tz=tz) + timedelta(seconds=tokens['expires_in'])
         
         item = {
             'user_id': user_id,
