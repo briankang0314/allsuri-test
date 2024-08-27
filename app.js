@@ -44,7 +44,7 @@ export async function Start()
 
 async function ConnectToSendbird(userId) {
     try {
-        const user = await sb.connect(userId);
+        const user = await window.sb.connect(userId);
         console.log('Successfully connected to Sendbird', user);
         return user;
     } catch (error) {

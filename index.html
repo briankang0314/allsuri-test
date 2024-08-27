@@ -26,13 +26,11 @@
 			window.onload = async () => {
 				await Start();
 				
-				const sb = SendbirdChat.init({
+				window.sb = SendbirdChat.init({
 					appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
-					modules: [
-						new OpenChannelModule(),
-					],
+					modules: [new GroupChannelModule()],
 				});
-			};
+					};
 		</script>
 	</head>
 	<body>
