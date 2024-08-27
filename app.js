@@ -25,7 +25,11 @@ export async function Start()
         
         try {
             const user = JSON.parse(localStorage.getItem('user'));
-            await ConnectToSendbird(user.user_id);
+            if (user && user.user_id) {
+                await ConnectToSendbird(user.user_id);
+            } else {
+                console.log('No user found in localStorage');
+            }
         } catch (error) {
             console.error('Error connecting to Sendbird:', error);
         }
@@ -43,6 +47,10 @@ export async function Start()
 }
 
 async function ConnectToSendbird(userId) {
+    if (!window.sb) {
+        console.error('Sendbird SDK not initialized');
+        return;
+    }
     try {
         const user = await window.sb.connect(userId);
         console.log('Successfully connected to Sendbird', user);

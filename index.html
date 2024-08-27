@@ -22,15 +22,16 @@
 		<script type="module">
 			import { Start } from "/app.js";
 			import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
+			import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/dist/groupchannel/+esm';
 
 			window.onload = async () => {
-				await Start();
-				
 				window.sb = SendbirdChat.init({
 					appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
 					modules: [new GroupChannelModule()],
 				});
 					};
+				
+				await Start();
 		</script>
 	</head>
 	<body>
