@@ -284,11 +284,11 @@ async function FillTheBody(contentName, params = {}) {
                                         console.log('Notification permission granted');
                                         allowButton.style.display = 'none';
                                         document.getElementById('device_token').style.display = 'block';
-                
+
                                         await SaveDeviceToken();
                                         setTimeout(() => {
-                                            ShowSuccessMessage('알림 설정이 완료되었습니다.');
-                                            FillTheBody('home');
+                                            ShowSuccessMessage('알림 설정이 완료되었습니다. 로그인 해주세요.');
+                                            FillTheBody('login');  // Navigate to login page instead of home
                                         }, 2000);
                                     } else {
                                         console.log('Notification permission denied');
