@@ -52,21 +52,23 @@ export async function Start()
     }
 }
 
-async function ConnectToSendbird(userId) {
-    try {
-        const user = await sb.connect(userId);
-        console.log('Successfully connected to Sendbird', user);
-        return user;
-    } catch (error) {
-        console.error('Error connecting to Sendbird:', error);
-        throw error;
-    }
-}
+// async function ConnectToSendbird(userId) {
+//     try {
+//         const user = await sb.connect(userId);
+//         console.log('Successfully connected to Sendbird', user);
+//         return user;
+//     } catch (error) {
+//         console.error('Error connecting to Sendbird:', error);
+//         throw error;
+//     }
+// }
 
 // Imports
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
+import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
+console.log('imported sendbirdchat in app.js', SendbirdChat);
 
 // Global Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
