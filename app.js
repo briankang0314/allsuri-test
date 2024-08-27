@@ -67,9 +67,8 @@ async function ConnectToSendbird(userId) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
-// import SendbirdChat from "@sendbird/chat";
-// import { GroupChannelModule } from '@sendbird/chat/groupChannel';
-
+import SendbirdChat from "@sendbird/chat";
+import { GroupChannelModule } from '@sendbird/chat/groupChannel';
 
 
 
