@@ -8,7 +8,7 @@ export async function Start()
     {
         // init kakao sdk
         Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
-        
+
         // check if notification not granted: the permission cannot be denied I think it's a bug
         if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
         
@@ -352,6 +352,14 @@ async function FillTheBody(contentName, params = {}) {
                     }
                     break;
                 case 'login':
+                    const logoLink = document.getElementById('logo-link');
+                    if (logoLink) {
+                        logoLink.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            FillTheBody('home');
+                        });
+                    }
+
                     const kakaoLoginBtn = document.getElementById('kakao-login-btn');
                     if (kakaoLoginBtn) {
                         kakaoLoginBtn.addEventListener('click', function() {
@@ -384,15 +392,7 @@ async function FillTheBody(contentName, params = {}) {
                     await SetupMyOrdersPage();
                     break;
                 case 'order-applications':
-                    console.log('Attempting to set up order-applications page');
-                    try {
-                        await SetupOrderApplicationsPage(params);
-                        console.log('Order-applications page setup completed');
-                    } catch (error) {
-                        console.error('Error setting up order-applications page:', error);
-                        ShowErrorMessage('지원자 목록을 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.');
-                        await FillTheBody('my-orders');
-                    }
+                    await SetupOrderApplicationsPage(params);
                     break;
                 case 'my-applications':
                     await SetupMyApplicationsPage();
@@ -733,6 +733,14 @@ async function SetupHomePage() {
 }
 
 function SetupHomePageEventListeners() {
+    const logoLink = document.getElementById('logo-link');
+    if (logoLink) {
+        logoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            FillTheBody('home');
+        });
+    }
+
     // Post Order button
     const postOrderBtn = document.getElementById('post-order-btn');
     if (postOrderBtn) {
@@ -1135,6 +1143,14 @@ async function FetchUserProfile() {
 }
 
 function SetupMyProfileEventListeners() {
+    const logoLink = document.getElementById('logo-link');
+    if (logoLink) {
+        logoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            FillTheBody('home');
+        });
+    }
+
     const backBtn = document.getElementById('back-btn');
     if (backBtn) {
         backBtn.addEventListener('click', () => FillTheBody('home'));
@@ -1258,6 +1274,14 @@ function InitializeAnimations() {
 async function SetupEditProfilePage() {
     try {
         console.log("Starting SetupEditProfilePage");
+
+        const logoLink = document.getElementById('logo-link');
+        if (logoLink) {
+            logoLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                FillTheBody('home');
+            });
+        }
 
         const backBtn = document.getElementById('back-btn');
         console.log("Back button found:", !!backBtn);
@@ -1429,6 +1453,14 @@ async function FetchAndDisplayMyOrderPosts(page = 1) {
 }
 
 async function SetupMyOrdersPage() {
+    const logoLink = document.getElementById('logo-link');
+    if (logoLink) {
+        logoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            FillTheBody('home');
+        });
+    }
+
     const backBtn = document.getElementById('back-btn');
     if (backBtn) {
         backBtn.addEventListener('click', () => FillTheBody('home'));
@@ -1694,6 +1726,14 @@ async function DeleteOrder(orderId) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function SetupMyApplicationsPage() {
     console.log('Setting up my applications page');
+
+    const logoLink = document.getElementById('logo-link');
+    if (logoLink) {
+        logoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            FillTheBody('home');
+        });
+    }
 
     const backBtn = document.getElementById('back-btn');
     if (backBtn) {
@@ -1978,6 +2018,14 @@ async function SetupOrderApplicationsPage(params) {
     const order = params.order;
     currentOrderId = order.order_id;
     console.log('Current order ID set:', currentOrderId);
+
+    const logoLink = document.getElementById('logo-link');
+    if (logoLink) {
+        logoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            FillTheBody('home');
+        });
+    }
 
     const backBtn = document.getElementById('back-btn');
     if (backBtn) {
@@ -2335,6 +2383,14 @@ async function SetupPostOrderPage() {
     PopulateRegions();
     document.getElementById('region').addEventListener('change', (e) => { PopulateCities(e.target.value); });
 
+    const logoLink = document.getElementById('logo-link');
+    if (logoLink) {
+        logoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            FillTheBody('home');
+        });
+    }
+
     // Set up fee type and input handling
     const feeType = document.getElementById('fee-type');
     const feeInputContainer = document.getElementById('fee-input-container');
@@ -2501,6 +2557,13 @@ async function SetupApplyForOrderPage() {
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
     const backBtn = document.getElementById('back-btn');
+    const logoLink = document.getElementById('logo-link');
+    if (logoLink) {
+        logoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            FillTheBody('home');
+        });
+    }
 
     let currentStep = 0;
     let calendar;
