@@ -6,11 +6,11 @@ export async function Start()
 {
     if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
     {
-        // check if notification not granted: the permission cannot be denied I think it's a bug
-        if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
-
         // init kakao sdk
         Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
+        
+        // check if notification not granted: the permission cannot be denied I think it's a bug
+        if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
         
         if (window.location.pathname === '/oauth/callback') {await LoginByKakao(); return;}
 
