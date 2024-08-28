@@ -19,6 +19,7 @@ export async function Start()
             appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
             modules: [
                 new GroupChannelModule(),
+                new OpenChannelModule(),
             ],
         });
 
@@ -70,6 +71,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebas
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
 import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
 import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/groupChannel.min.js';
+import { OpenChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/openChannel.min.js';
 
 // Global Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
