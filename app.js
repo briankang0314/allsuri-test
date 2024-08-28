@@ -244,6 +244,8 @@ let isSubmitting = false;
 async function FillTheBody(contentName, params = {}) {
     try {
         if (contentName === 'my-profile') {
+            ShowLoading();
+
             const profile = await FetchUserProfile();
             if (!profile) {
                 throw new Error('Failed to fetch user profile');
@@ -256,6 +258,8 @@ async function FillTheBody(contentName, params = {}) {
             // Set up the page with the fetched profile data
             SetupMyProfileEventListeners();
             UpdateProfileUI(profile);
+
+            HideLoading();
         } else {
             // For all other pages, proceed as before
             const content = await fetch(`/contents/${contentName}.html`).then(response => response.text());
@@ -373,6 +377,7 @@ async function FillTheBody(contentName, params = {}) {
     } catch (error) {
         console.error(`Error loading ${contentName}:`, error);
         ShowErrorMessage(`${contentName} 페이지 로딩 중 오류가 발생했습니다. 다시 시도해주세요.`);
+        HideLoading();
     }
 }
 
