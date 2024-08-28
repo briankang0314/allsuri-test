@@ -235,7 +235,36 @@ let isSubmitting = false;
 
 
 
-
+let debugLog = [];
+   
+   function addDebugLog(message) {
+     debugLog.push(`${new Date().toISOString()}: ${message}`);
+     if (debugLog.length > 100) debugLog.shift(); // Keep only last 100 messages
+     updateDebugDisplay();
+   }
+   
+   function updateDebugDisplay() {
+     const debugArea = document.getElementById('debug-area');
+     if (debugArea) {
+       debugArea.innerHTML = debugLog.join('<br>');
+     }
+   }
+   
+   // Add this to your HTML
+   <div id="debug-area" style="display:none; position:fixed; bottom:0; left:0; right:0; height:200px; overflow-y:scroll; background:rgba(0,0,0,0.8); color:white; font-size:10px; padding:10px;"></div>
+   
+   // Add a gesture to show/hide debug area
+   let tapCount = 0;
+   document.addEventListener('touchend', function(e) {
+     if (e.touches.length === 0) {
+       tapCount++;
+       if (tapCount === 5) {
+         const debugArea = document.getElementById('debug-area');
+         debugArea.style.display = debugArea.style.display === 'none' ? 'block' : 'none';
+         tapCount = 0;
+       }
+     }
+   });
 
 
 
@@ -327,11 +356,20 @@ async function FillTheBody(contentName, params = {}) {
                     const kakaoLoginBtn = document.getElementById('kakao-login-btn');
                     if (kakaoLoginBtn) {
                         kakaoLoginBtn.addEventListener('click', function() {
-                            console.log('Attempting Kakao login');
-                            Kakao.Auth.authorize({
+                            try {
+                              addDebugLog('Kakao login button clicked');
+                              if (!Kakao.isInitialized()) {
+                                throw new Error('Kakao SDK not initialized');
+                              }
+                              addDebugLog('Kakao SDK initialized, attempting to authorize');
+                              Kakao.Auth.authorize({
                                 redirectUri: 'https://allsuri-test.netlify.app/oauth/callback',
-                            });
-                        });
+                              });
+                            } catch (error) {
+                              addDebugLog('Error in Kakao login: ' + error.message);
+                              ShowErrorMessage('카카오 로그인 중 오류 발생: ' + error.message);
+                            }
+                          });
                     }
 
                     const backButton = document.getElementById('back-btn');
