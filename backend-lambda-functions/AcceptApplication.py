@@ -4,6 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime
 import requests
+from urllib.parse import quote
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -13,6 +14,10 @@ dynamodb = boto3.resource('dynamodb')
 applications_table = dynamodb.Table('Applications')
 orders_table = dynamodb.Table('Orders')
 users_table = dynamodb.Table('Users')
+
+SENDBIRD_API_TOKEN = '7e37ae92fe49e7cde3242e4556ec933c13d0734d'
+SENDBIRD_APP_ID = '9C4825FA-714B-49B2-B75A-72E9E5632578'
+SENDBIRD_API_URL = f'https://api-{SENDBIRD_APP_ID}.sendbird.com/v3'
 
 def lambda_handler(event, context):
     logger.info(f"Received event: {json.dumps(event)}")
@@ -31,14 +36,23 @@ def lambda_handler(event, context):
         if not verify_order_ownership(user_id, order_id):
             return create_response(403, {'success': False, 'message': 'You do not own this order'})
 
-        # Accept the application
-        accepted_application = accept_application(order_id, application_id)
+        # Accept the application and get order details
+        accepted_application, order = accept_application(order_id, application_id)
 
         # Update order status to closed
-        update_order_status(order_id, 'closed')
+        update_order_status(order_id, order['created_at'], 'closed')
 
         # Reject all other applications
         reject_other_applications(order_id, application_id)
+        
+        # Create Sendbird channel
+        channel = create_sendbird_channel(order['user_id'], accepted_application['applicant_id'], order_id)
+        
+        if channel:
+            # Store the channel URL in your order or application record
+            update_order_with_channel(order_id, order['created_at'], channel['channel_url'])
+        else:
+            logger.warning(f"Failed to create Sendbird channel for order {order_id}")
 
         # Send push notification to the accepted applicant
         send_push_notification(
@@ -76,6 +90,11 @@ def verify_order_ownership(user_id, order_id):
 
 def accept_application(order_id, application_id):
     try:
+        # First, get the order details
+        order = get_order(order_id)
+        if not order:
+            raise ValueError(f"No order found with id {order_id}")
+        
         # First, query the application to get its full details
         response = applications_table.query(
             KeyConditionExpression='application_id = :application_id',
@@ -90,7 +109,6 @@ def accept_application(order_id, application_id):
         created_at = application['created_at']
         
         # Get the order details to include the order title in the notification
-        order = get_order(order_id)
         order_title = order['title'] if order else "Unknown Order"
         
         # Now update the application with both primary key attributes
@@ -109,27 +127,13 @@ def accept_application(order_id, application_id):
             ReturnValues='ALL_NEW'
         )
         
-        return updated_application['Attributes']
+        return updated_application['Attributes'], order
     except ClientError as e:
         logger.error(f"Error accepting application: {e}")
         raise
 
-def update_order_status(order_id, status):
+def update_order_status(order_id, created_at, status):
     try:
-        # Query to get the full order details
-        response = orders_table.query(
-            KeyConditionExpression='order_id = :order_id',
-            ExpressionAttributeValues={':order_id': order_id},
-            Limit=1
-        )
-        
-        if not response['Items']:
-            raise ValueError(f"No order found with id {order_id}")
-        
-        order = response['Items'][0]
-        created_at = order['created_at']
-        
-        # Update the order with both primary key attributes
         orders_table.update_item(
             Key={
                 'order_id': order_id,
@@ -142,8 +146,27 @@ def update_order_status(order_id, status):
                 ':updated_at': datetime.now().isoformat()
             }
         )
+        logger.info(f"Updated status of order {order_id} to {status}")
     except ClientError as e:
         logger.error(f"Error updating order status: {e}")
+        raise
+
+def update_order_with_channel(order_id, created_at, channel_url):
+    try:
+        orders_table.update_item(
+            Key={
+                'order_id': order_id,
+                'created_at': created_at
+            },
+            UpdateExpression='SET sendbird_channel_url = :channel_url, updated_at = :updated_at',
+            ExpressionAttributeValues={
+                ':channel_url': channel_url,
+                ':updated_at': datetime.now().isoformat()
+            }
+        )
+        logger.info(f"Updated order {order_id} with Sendbird channel URL: {channel_url}")
+    except ClientError as e:
+        logger.error(f"Error updating order with channel URL: {e}")
         raise
 
 def reject_other_applications(order_id, accepted_application_id):
@@ -246,6 +269,34 @@ def send_push_notification(user_id, title, body):
             logger.error(f"Response status code: {e.response.status_code}")
             logger.error(f"Response headers: {json.dumps(dict(e.response.headers), indent=2)}")
             logger.error(f"Response body: {e.response.text}")
+
+def create_sendbird_channel(poster_id, applicant_id, order_id):
+    url = f"{SENDBIRD_API_URL}/group_channels"
+    headers = {
+        "Content-Type": "application/json",
+        "Api-Token": SENDBIRD_API_TOKEN
+    }
+    
+    # URL encode the user IDs
+    encoded_poster_id = quote(poster_id, safe='')
+    encoded_applicant_id = quote(applicant_id, safe='')
+    
+    data = {
+        "user_ids": [encoded_poster_id, encoded_applicant_id],
+        "name": f"Order {order_id}",
+        "channel_url": f"order_{order_id}",
+        "is_distinct": True,
+        "custom_type": "order_chat",
+        "data": json.dumps({"order_id": order_id})
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to create Sendbird channel: {str(e)}")
+        return None
 
 def create_response(status_code, body):
     return {
