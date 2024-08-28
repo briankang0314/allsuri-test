@@ -1272,6 +1272,7 @@ function InitializeAnimations() {
 // Edit Profile Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function SetupEditProfilePage() {
+    ShowLoading();
     try {
         console.log("Starting SetupEditProfilePage");
 
@@ -1318,6 +1319,8 @@ async function SetupEditProfilePage() {
     } catch (error) {
         console.error("Error in SetupEditProfilePage:", error);
         ShowErrorMessage('edit-profile 페이지 로딩 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+        HideLoading();
     }
 }
 
@@ -2374,6 +2377,8 @@ function UpdateApplicationStatus(applicationId, status) {
 // Post Order Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function SetupPostOrderPage() {
+    ShowLoading();
+
     // Set up event listeners
     document.getElementById('post-order-form').addEventListener('submit', SubmitOrder);
     document.getElementById('cancel-post-order').addEventListener('click', () => FillTheBody('home'));
@@ -2416,6 +2421,8 @@ async function SetupPostOrderPage() {
             this.classList.remove('is-invalid');
         }
     });
+
+    HideLoading();
 }
 
 async function SubmitOrder(event) {
