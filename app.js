@@ -405,6 +405,9 @@ async function FillTheBody(contentName, params = {}) {
                 case 'my-applications':
                     await SetupMyApplicationsPage();
                     break;
+                case 'chat':
+                    await SetupChatPage();
+                    break;
                 // case 'user-login-info':
                 //     SetupUserLoginInfoPage();
                 //     break;
@@ -751,11 +754,9 @@ function SetupHomePageEventListeners() {
     }
 
     // Chat button
-    const chatBtn = document.getElementById('chat-btn');
+    const chatBtn = document.getElementById('chat-btn');    
     if (chatBtn) {
-        chatBtn.addEventListener('click', () => {
-            OpenChatInterface();
-        });
+        chatBtn.addEventListener('click', () => FillTheBody('chat'));
     }
 
     // Post Order button
@@ -1148,6 +1149,15 @@ async function Logout() {
 
 
 
+
+
+
+
+
+
+
+// Chat Page
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
