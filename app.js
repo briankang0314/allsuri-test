@@ -741,11 +741,20 @@ async function SetupHomePage() {
 }
 
 function SetupHomePageEventListeners() {
+    // Logo
     const logoLink = document.getElementById('logo-link');
     if (logoLink) {
         logoLink.addEventListener('click', (e) => {
             e.preventDefault();
             FillTheBody('home');
+        });
+    }
+
+    // Chat button
+    const chatBtn = document.getElementById('chat-btn');
+    if (chatBtn) {
+        chatBtn.addEventListener('click', () => {
+            OpenChatInterface();
         });
     }
 
@@ -765,6 +774,7 @@ function SetupHomePageEventListeners() {
         });
     }
 
+    // Settings button
     const settingsBtn = document.getElementById('settings-btn');
     if (settingsBtn) {
         // Listen for Bootstrap's shown.bs.dropdown event
@@ -779,11 +789,13 @@ function SetupHomePageEventListeners() {
         item.addEventListener('click', HandleDropdownItemClick);
     });
 
+    // Refresh button
     const refreshBtn = document.getElementById('refresh-btn');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', RefreshOrderPosts);
     }
 
+    // Pagination
     const paginationContainer = document.getElementById('pagination-container');
     if (paginationContainer) {
         paginationContainer.addEventListener('click', async (e) => {
@@ -937,6 +949,14 @@ function ShowOrderDetails(order, currentUser) {
 
     const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
     modal.show();
+}
+
+function OpenChatInterface() {
+    // Implement this function to open your chat UI
+    // This might involve fetching chat data from Sendbird,
+    // rendering a chat component, etc.
+    console.log('Opening chat interface');
+    // TODO: Implement chat opening logic
 }
 
 function SetupFilterAndSort() {
@@ -2298,6 +2318,7 @@ async function AcceptApplication(applicationId) {
         if (result.sendbird_channel_url) {
             console.log('Sendbird channel URL received:', result.sendbird_channel_url);
             // You might want to store this URL or use it to redirect to the chat
+
         }
 
         ShowSuccessMessage('지원서가 성공적으로 수락되었습니다.', 3000);
