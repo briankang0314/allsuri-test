@@ -1,4 +1,12 @@
-// Exppoerted functions: Start
+// Imports
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
+import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
+import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
+import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/groupChannel.min.js';
+import { OpenChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/openChannel.min.js';
+
+// Exppoerted functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 let sb;
 
@@ -65,13 +73,11 @@ async function ConnectToSendbird(userId) {
     }
 }
 
-// Imports
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
-import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
-import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
-import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/groupChannel.min.js';
-import { OpenChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/openChannel.min.js';
+
+
+
+
+
 
 // Global Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2253,12 +2259,16 @@ function ShowApplicationDetails(application, isOrderClosed) {
 }
 
 async function AcceptApplication(applicationId) {
+    console.log(`Initiating application acceptance. Application ID: ${applicationId}, Order ID: ${currentOrderId}`);
+    
     if (!confirm('이 지원서를 수락하시겠습니까? 다른 모든 지원서는 자동으로 거절됩니다.')) {
+        console.log('User cancelled application acceptance');
         return;
     }
 
     ShowLoading();
     try {
+        console.log('Sending AcceptApplication request to backend');
         const response = await MakeAuthenticatedRequest('https://69qcfumvgb.execute-api.ap-southeast-2.amazonaws.com/AcceptApplication', {
             method: 'POST',
             headers: {
@@ -2270,28 +2280,42 @@ async function AcceptApplication(applicationId) {
             })
         });
 
+        console.log('Received response from AcceptApplication endpoint:', response);
+
         if (!response.ok) {
-            throw new Error('Failed to accept application');
+            throw new Error(`Failed to accept application. Status: ${response.status}`);
         }
 
         const result = await response.json();
+        console.log('Parsed response body:', result);
+
         if (!result.success) {
             throw new Error(result.error || 'Failed to accept application');
+        }
+
+        console.log('Application accepted successfully');
+        
+        if (result.sendbird_channel_url) {
+            console.log('Sendbird channel URL received:', result.sendbird_channel_url);
+            // You might want to store this URL or use it to redirect to the chat
         }
 
         ShowSuccessMessage('지원서가 성공적으로 수락되었습니다.', 3000);
         
         // Update UI immediately
+        console.log('Updating UI for accepted application');
         UpdateApplicationStatus(applicationId, 'accepted');
         DisableApplicationActions();
         
         // Then refresh the applications list
+        console.log('Refreshing applications list');
         await FetchAndDisplayApplications(currentOrderId);
     } catch (error) {
         console.error('Error accepting application:', error);
         ShowErrorMessage('지원서 수락 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
         HideLoading();
+        console.log('AcceptApplication process completed');
     }
 }
 

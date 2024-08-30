@@ -51,6 +51,15 @@ def lambda_handler(event, context):
         if channel:
             # Store the channel URL in your order or application record
             update_order_with_channel(order_id, order['created_at'], channel['channel_url'])
+            
+            # Log the response data
+            response_data = {
+                'message': 'Application accepted successfully',
+                'order_id': order_id,
+                'application_id': application_id,
+                'sendbird_channel_url': channel['channel_url']
+            }
+            logger.info(f"Sending response to client: {json.dumps(response_data, indent=2)}")
         else:
             logger.warning(f"Failed to create Sendbird channel for order {order_id}")
 
@@ -290,10 +299,14 @@ def create_sendbird_channel(poster_id, applicant_id, order_id):
         "data": json.dumps({"order_id": order_id})
     }
     
+    logger.info(f"Creating Sendbird channel with data: {json.dumps(data, indent=2)}")
+    
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()  # Raises an HTTPError for bad responses
-        return response.json()
+        channel_data = response.json()
+        logger.info(f"Sendbird channel created successfully: {json.dumps(channel_data, indent=2)}")
+        return channel_data
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to create Sendbird channel: {str(e)}")
         return None
