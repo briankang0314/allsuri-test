@@ -44,7 +44,7 @@
             background-color: var(--secondary-bg-color);
             border-radius: var(--border-radius);
             box-shadow: var(--primary-shadow);
-            height: calc(100vh - 150px);
+            height: calc(100vh - 200px);
             display: flex;
         }
     
@@ -52,6 +52,8 @@
             width: 300px;
             border-right: 1px solid #dee2e6;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
     
         .chat-area {
@@ -124,6 +126,13 @@
 </head>
 <body>
     <div class="container-fluid">
+        <div id="connectionStatus" class="alert alert-info d-none" role="alert">
+            <!-- Connection status messages will be displayed here -->
+        </div>
+        <div id="errorMessages" class="alert alert-danger d-none" role="alert">
+            <!-- Error messages will be displayed here -->
+        </div>
+
         <header class="header d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center">
                 <a href="#" id="logo-link">
@@ -144,14 +153,28 @@
         <main role="main">
             <div class="chat-container">
                 <div class="channel-list" id="channelList">
-                    <!-- Channel list will be dynamically populated here -->
+                    <div class="p-2">
+                        <input type="text" id="searchInput" class="form-control" placeholder="채널 또는 메시지 검색">
+                    </div>
+                    <div id="channelListContent" class="flex-grow-1 overflow-auto">
+                        <!-- Channel list will be dynamically populated here -->
+                    </div>
                 </div>
                 <div class="chat-area">
+                    <div class="chat-header p-2 border-bottom">
+                        <div id="currentChannelInfo">
+                            <!-- Current channel name and user presence will be displayed here -->
+                        </div>
+                    </div>
                     <div class="message-list" id="messageList">
                         <!-- Messages will be dynamically populated here -->
                     </div>
                     <div class="message-input">
                         <div class="input-group">
+                            <input type="file" id="fileInput" class="d-none" multiple>
+                            <button class="btn btn-outline-secondary" type="button" id="attachButton">
+                                <i class="bi bi-paperclip"></i>
+                            </button>
                             <input type="text" id="messageInput" class="form-control" placeholder="메시지를 입력하세요...">
                             <button class="btn btn-primary" type="button" id="sendButton">
                                 <i class="bi bi-send"></i>
@@ -162,6 +185,29 @@
             </div>
         </main>
     </div>
+
+    <template id="channelItemTemplate">
+        <div class="channel-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="channel-info">
+                    <h6 class="channel-name mb-0"></h6>
+                    <small class="last-message text-muted"></small>
+                </div>
+                <div class="channel-meta">
+                    <small class="last-message-time text-muted"></small>
+                    <span class="unread-count badge bg-primary"></span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="messageBubbleTemplate">
+        <div class="message-bubble">
+            <div class="message-sender"></div>
+            <div class="message-content"></div>
+            <div class="message-time small text-muted"></div>
+        </div>
+    </template>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
