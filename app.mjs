@@ -39,7 +39,19 @@ export async function Start()
         }
 
         // general app processes: here now we can start app
+
+
+
+        
+
+
+
+
         sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
+
+        console.log(sb);
+
+        
 
         try {await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id);} catch(Error) {return;}
 
