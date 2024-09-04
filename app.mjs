@@ -44,6 +44,8 @@ export async function Start()
 
         
 
+        /*
+
 
 
 
@@ -51,9 +53,13 @@ export async function Start()
 
         console.log(sb);
 
-        
+
 
         try {await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id);} catch(Error) {return;}
+
+        */
+
+
 
         await FillTheBody('home');
     }
