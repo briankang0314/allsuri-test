@@ -13,32 +13,20 @@ Remember these
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
 */
 
-
 // Exppoerted functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export async function Start()
 {
     if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
     {
-        // init kakao sdk
-        Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f');
-
-        // check if notification not granted: the permission cannot be denied I think it's a bug
+        // check things to start app
         if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
-        
-        if (window.location.pathname === '/oauth/callback') {await LoginByKakao(); return;}
 
-        // init sendbird sdk
-        sb = SendbirdChat.init({
-            appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
-            modules: [
-                new GroupChannelModule(),
-            ],
-        });
-
-        // check if not configured
         if (localStorage.getItem('user') == null || localStorage.getItem('tokens') == null)
         {
+            // init kakao sdk
+            Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f');
+
             await FillTheBody('login');
             return;
         }
@@ -46,15 +34,14 @@ export async function Start()
         {
             if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;}
         }
-        
-        try {
-            const user = JSON.parse(localStorage.getItem('user'));
-            await ConnectToSendbird(user.user_id);
-        } catch (error) {
-            console.error('Error connecting to Sendbird:', error);
-        }
 
-        // Show home
+        // general app processes: here now we can start app
+        if (window.location.pathname === '/oauth/callback') {Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f'); await LoginByKakao(); return;}
+
+        sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
+
+        try {await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id);} catch(Error) {return;}
+
         await FillTheBody('home');
     }
     else
@@ -72,7 +59,7 @@ export async function Start()
 
 
 
-let sb;
+let sb = null;
 
 const regions = [
     { id: 1, name: '서울' }, { id: 2, name: '인천' }, { id: 3, name: '경기' },
