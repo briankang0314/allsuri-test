@@ -2,7 +2,7 @@ plugins = []
 headers = []
 
 [[redirects]]
-  from = "https://allsuri-test.netlify.app/oauth/callback"
+  from = "*"
   to = "index.html"
   status = 200
 
