@@ -4,25 +4,18 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebas
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
 import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
 import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/groupChannel.min.js';
+/*
+Remember these
 
-
-
-
-
-
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
+*/
 
 
 // Exppoerted functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-let sb;
-
-
-
-
-
-
-
 export async function Start()
 {
     if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
@@ -73,26 +66,14 @@ export async function Start()
     }
 }
 
-async function ConnectToSendbird(userId) {
-    try {
-        const user = await sb.connect(userId);
-        console.log('Successfully connected to Sendbird', user);
-        console.log('user id: ', userId);
-        return user;
-    } catch (error) {
-        console.error('Error connecting to Sendbird:', error);
-        throw error;
-    }
-}
-
-
-
-
-
-
-
 // Global Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+let sb;
+
 const regions = [
     { id: 1, name: '서울' }, { id: 2, name: '인천' }, { id: 3, name: '경기' },
     { id: 4, name: '부산' }, { id: 5, name: '대구' }, { id: 6, name: '광주' },
@@ -292,6 +273,33 @@ let isSubmitting = false;
 
 // Dynamic Content Loading
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+async function ConnectToSendbird(userId)
+{
+    try {
+        const user = await sb.connect(userId);
+        console.log('Successfully connected to Sendbird', user);
+        console.log('user id: ', userId);
+        return user;
+    } catch (error) {
+        console.error('Error connecting to Sendbird:', error);
+        throw error;
+    }
+}
+
+
+
+
+
+
 async function FillTheBody(contentName, params = {}) {
     try {
         if (contentName === 'my-profile') {
