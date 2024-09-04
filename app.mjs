@@ -5,6 +5,14 @@ import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.
 import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
 import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/groupChannel.min.js';
 
+
+
+
+
+
+
+
+
 // Exppoerted functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 let sb;
@@ -20,7 +28,7 @@ export async function Start()
     if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
     {
         // init kakao sdk
-        Kakao.init("8cdce0e36a3774e9d3d2a738f2d5192f");
+        Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f');
 
         // check if notification not granted: the permission cannot be denied I think it's a bug
         if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
