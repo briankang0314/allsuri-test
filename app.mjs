@@ -19,6 +19,9 @@ export async function Start()
 {
     if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
     {
+        // callback setting for kakao login
+        if (window.location.pathname === '/oauth/callback') {Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f'); await LoginByKakao(); return;}
+
         // check things to start app
         if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
 
@@ -36,8 +39,6 @@ export async function Start()
         }
 
         // general app processes: here now we can start app
-        if (window.location.pathname === '/oauth/callback') {Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f'); await LoginByKakao(); return;}
-
         sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
 
         try {await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id);} catch(Error) {return;}
