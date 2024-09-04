@@ -121,6 +121,7 @@ let currentFilters = {
     city: '',
     status: ''
 };
+
 let currentSort = 'created_at';
 
 let myOrdersCurrentFilters = {
@@ -128,11 +129,13 @@ let myOrdersCurrentFilters = {
     city: '',
     status: ''
 };
+
 let myOrdersCurrentSort = 'created_at';
 
 let myApplicationsCurrentFilters = {
     status: ''
 };
+
 let myApplicationsCurrentSort = 'created_at';
 
 let isLoading = false;
