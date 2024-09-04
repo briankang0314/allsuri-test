@@ -4,11 +4,16 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebas
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
 import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
 import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/groupChannel.min.js';
-import { OpenChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/openChannel.min.js';
 
 // Exppoerted functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 let sb;
+
+
+
+
+
+
 
 export async function Start()
 {
@@ -27,7 +32,6 @@ export async function Start()
             appId: "9C4825FA-714B-49B2-B75A-72E9E5632578",
             modules: [
                 new GroupChannelModule(),
-                new OpenChannelModule(),
             ],
         });
 
@@ -1153,11 +1157,169 @@ async function Logout() {
 
 
 
-
-
-
 // Chat Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function SetupChatPage() {
+    try {
+        // Set up UI elements
+        const channelList = document.getElementById('channelListContent');
+        const messageList = document.getElementById('messageList');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const searchInput = document.getElementById('searchInput');
+        const attachButton = document.getElementById('attachButton');
+        const fileInput = document.getElementById('fileInput');
+        const toggleChannelsBtn = document.getElementById('toggle-channels-btn');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const errorMessages = document.getElementById('errorMessages');
+
+        // Set up channel list
+        await LoadChannelList();
+        
+        // Set up event listeners
+        sendButton.addEventListener('click', SendMessage);
+        messageInput.addEventListener('keypress', HandleMessageInputKeypress);
+        searchInput.addEventListener('input', HandleSearch);
+        attachButton.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', HandleFileSelection);
+        toggleChannelsBtn.addEventListener('click', ToggleChannelList);
+        
+        // Set up real-time event handlers
+        sb.addChannelHandler('UNIQUE_HANDLER_ID', {
+            onMessageReceived: HandleNewMessage,
+            onChannelChanged: UpdateChannelList,
+            onUserEntered: UpdateUserPresence,
+            onUserExited: UpdateUserPresence,
+            onUserLeft: UpdateUserPresence,
+        });
+
+        // Update connection status
+        UpdateConnectionStatus(sb.getConnectionState());
+
+        // Set up connection event listeners
+        sb.addConnectionHandler('CONNECTION_HANDLER', {
+            onReconnectStarted: () => UpdateConnectionStatus('RECONNECTING'),
+            onReconnectSucceeded: () => UpdateConnectionStatus('OPEN'),
+            onReconnectFailed: () => UpdateConnectionStatus('CLOSED'),
+        });
+
+    } catch (error) {
+        console.error('Error setting up chat:', error);
+        ShowChatErrorMessage('채팅을 설정하는 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+}
+
+async function LoadChannelList() {
+    try {
+        const groupChannelQuery = sb.groupChannel.createMyGroupChannelListQuery({ limit: 15, order: 'latest_last_message' });
+        const channels = await groupChannelQuery.next();
+        const channelListContent = document.getElementById('channelListContent');
+        channelListContent.innerHTML = '';
+        
+        channels.forEach(channel => {
+            const channelItem = document.getElementById('channelItemTemplate').content.cloneNode(true);
+            channelItem.querySelector('.channel-name').textContent = channel.name;
+            channelItem.querySelector('.last-message').textContent = channel.lastMessage ? channel.lastMessage.message : 'No messages';
+            channelItem.querySelector('.last-message-time').textContent = FormatDate(channel.lastMessage ? channel.lastMessage.createdAt : channel.createdAt);
+            channelItem.querySelector('.unread-count').textContent = channel.unreadMessageCount;
+            
+            channelItem.querySelector('.channel-item').addEventListener('click', () => SelectChannel(channel));
+            
+            channelListContent.appendChild(channelItem);
+        });
+    } catch (error) {
+        console.error('Error loading channel list:', error);
+        ShowErrorMessage('채널 목록을 불러오는 중 오류가 발생했습니다.');
+    }
+}
+
+function SelectChannel(channel) {
+    // Implement channel selection logic
+    // Load messages for the selected channel
+    // Update UI to show the selected channel
+}
+
+function SendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    if (message) {
+        // Implement send message logic using Sendbird SDK
+        // Update UI after sending
+        messageInput.value = '';
+    }
+}
+
+function HandleNewMessage(channel, message) {
+    // Implement new message handling
+    // Update UI to show the new message
+}
+
+function UpdateChannelList() {
+    // Implement channel list update logic
+    LoadChannelList();
+}
+
+function UpdateUserPresence(channel, user) {
+    // Implement user presence update logic
+    // Update UI to reflect user presence changes
+}
+
+function HandleSearch() {
+    const searchTerm = document.getElementById('searchInput').value.trim();
+    if (searchTerm) {
+        // Implement search logic using Sendbird SDK
+        // Update UI to show search results
+    } else {
+        LoadChannelList();
+    }
+}
+
+function HandleFileSelection() {
+    const fileInput = document.getElementById('fileInput');
+    const files = fileInput.files;
+    if (files.length > 0) {
+        // Implement file upload logic using Sendbird SDK
+        // Update UI to show upload progress and result
+    }
+}
+
+function ToggleChannelList() {
+    const channelList = document.getElementById('channelList');
+    channelList.classList.toggle('show');
+}
+
+function UpdateConnectionStatus(status) {
+    const connectionStatus = document.getElementById('connectionStatus');
+    connectionStatus.textContent = `Connection status: ${status}`;
+    connectionStatus.classList.remove('d-none');
+}
+
+function HandleMessageInputKeypress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        SendMessage();
+    }
+}
+
+function FormatDate(date) {
+    // Implement date formatting logic
+    return new Date(date).toLocaleString();
+}
+
+function ShowChatErrorMessage(message) {
+    const errorMessages = document.getElementById('errorMessages');
+    errorMessages.textContent = message;
+    errorMessages.classList.remove('d-none');
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3284,7 +3446,7 @@ function HideLoading() {
     }
 }
 
-  function ShowErrorMessage(message, duration = 5000) {
+function ShowErrorMessage(message, duration = 5000) {
     showMessage(message, duration, '#ff6b6b');
 }
 

@@ -1,4 +1,0 @@
-/assets/*  /assets/:splat  200
-/js/*      /js/:splat      200
-/node_modules/* /node_modules/:splat 200
-/*        /index.html     200
