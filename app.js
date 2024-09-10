@@ -1113,10 +1113,15 @@ function PopulateCityFilter(selectElement, selectedRegion) {
     }
 }
 
+function getStoredAccessToken() {
+    const tokens = JSON.parse(localStorage.getItem('tokens'));
+    return tokens && tokens.access_token ? tokens.access_token : null;
+}
+
 async function Logout() {
     console.log('Logout function initiated');
 
-    const accessToken = Kakao.Auth.getAccessToken();
+    const accessToken = getStoredAccessToken();
     if (!accessToken) {
         console.log('No Kakao access token found, proceeding with local logout');
         // Proceed with clearing local storage and UI update

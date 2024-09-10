@@ -45,7 +45,9 @@ def lambda_handler(event, context):
         # Find the user by access token
         user = get_user_by_access_token(access_token)
         if not user:
-            return create_response(401, {'error': 'Invalid or expired token'})
+            logger.warning(f"No user found for access token: {access_token[:10]}...")
+            return create_response(200, {'message': 'Logout successful (no active session found)'})
+            # return create_response(401, {'error': 'Invalid or expired token'})
 
         # Invalidate the user's tokens
         invalidate_user_tokens(user['user_id'])
