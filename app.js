@@ -19,17 +19,26 @@ export async function Start()
 {
     if (window.matchMedia('(display-mode: standalone)').matches) // check if running as PWA
     {
+        Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f');
+
         // callback setting for kakao login
-        if (window.location.pathname === '/oauth/callback') {Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f'); await LoginByKakao(); return;}
+        if (window.location.pathname === '/oauth/callback')
+        {
+            await LoginByKakao();
+            
+            sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
+
+            console.log(sb);    
+
+            try {await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id);} catch(Error) {return;}
+            return;
+        }
 
         // check things to start app
         if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
 
         if (localStorage.getItem('user') == null || localStorage.getItem('tokens') == null)
         {
-            // init kakao sdk
-            Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f');
-
             await FillTheBody('login');
             return;
         }
@@ -682,11 +691,7 @@ async function LoginByKakao() {
                         Kakao.Auth.setAccessToken(null);
                     }
                 }
-                sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
 
-                console.log(sb);    
-
-                try {await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id);} catch(Error) {return;}
                 // Redirect to home page
                 await FillTheBody('home');
             } else {
