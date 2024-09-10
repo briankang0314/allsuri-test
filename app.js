@@ -38,12 +38,6 @@ export async function Start()
             if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;}
         }
 
-        sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
-
-        console.log(sb);
-
-        try {await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id);} catch(Error) {return;}
-
         await FillTheBody('home');
     }
     else
@@ -688,6 +682,11 @@ async function LoginByKakao() {
                         Kakao.Auth.setAccessToken(null);
                     }
                 }
+                sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
+
+                console.log(sb);    
+
+                try {await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id);} catch(Error) {return;}
                 // Redirect to home page
                 await FillTheBody('home');
             } else {
@@ -1168,156 +1167,77 @@ async function Logout() {
 // Chat Page
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function SetupChatPage() {
-    try {
-        // Set up UI elements
-        const channelList = document.getElementById('channelListContent');
-        const messageList = document.getElementById('messageList');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const searchInput = document.getElementById('searchInput');
-        const attachButton = document.getElementById('attachButton');
-        const fileInput = document.getElementById('fileInput');
-        const toggleChannelsBtn = document.getElementById('toggle-channels-btn');
-        const connectionStatus = document.getElementById('connectionStatus');
-        const errorMessages = document.getElementById('errorMessages');
+  // 1. Initialize chat components
+  initializeChatComponents();
 
-        // Set up channel list
-        await LoadChannelList();
-        
-        // Set up event listeners
-        sendButton.addEventListener('click', SendMessage);
-        messageInput.addEventListener('keypress', HandleMessageInputKeypress);
-        searchInput.addEventListener('input', HandleSearch);
-        attachButton.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', HandleFileSelection);
-        toggleChannelsBtn.addEventListener('click', ToggleChannelList);
-        
-        // Set up real-time event handlers
-        sb.addChannelHandler('UNIQUE_HANDLER_ID', {
-            onMessageReceived: HandleNewMessage,
-            onChannelChanged: UpdateChannelList,
-            onUserEntered: UpdateUserPresence,
-            onUserExited: UpdateUserPresence,
-            onUserLeft: UpdateUserPresence,
-        });
+  // 2. Set up channel list
+  const channelCollection = setupChannelList();
 
-        // Update connection status
-        UpdateConnectionStatus(sb.getConnectionState());
+  // 3. Set up message list (initially empty)
+  const messageCollection = setupMessageList();
 
-        // Set up connection event listeners
-        sb.addConnectionHandler('CONNECTION_HANDLER', {
-            onReconnectStarted: () => UpdateConnectionStatus('RECONNECTING'),
-            onReconnectSucceeded: () => UpdateConnectionStatus('OPEN'),
-            onReconnectFailed: () => UpdateConnectionStatus('CLOSED'),
-        });
+  // 4. Set up message input
+  setupMessageInput();
 
-    } catch (error) {
-        console.error('Error setting up chat:', error);
-        ShowChatErrorMessage('채팅을 설정하는 중 오류가 발생했습니다. 다시 시도해주세요.');
-    }
+  // 5. Set up real-time event handlers
+  setupEventHandlers(channelCollection, messageCollection);
+
+  // 6. Set up user presence and profiles
+  setupUserPresence();
+
+  // 7. Set up search functionality
+  setupSearch();
+
+  // 8. Set up error handling and connection status display
+  setupErrorHandlingAndConnectionStatus();
+
+  // 9. Apply responsive design (CSS)
+  applyResponsiveDesign();
 }
 
-async function LoadChannelList() {
-    try {
-        const groupChannelQuery = sb.groupChannel.createMyGroupChannelListQuery({ limit: 15, order: 'latest_last_message' });
-        const channels = await groupChannelQuery.next();
-        const channelListContent = document.getElementById('channelListContent');
-        channelListContent.innerHTML = '';
-        
-        channels.forEach(channel => {
-            const channelItem = document.getElementById('channelItemTemplate').content.cloneNode(true);
-            channelItem.querySelector('.channel-name').textContent = channel.name;
-            channelItem.querySelector('.last-message').textContent = channel.lastMessage ? channel.lastMessage.message : 'No messages';
-            channelItem.querySelector('.last-message-time').textContent = FormatDate(channel.lastMessage ? channel.lastMessage.createdAt : channel.createdAt);
-            channelItem.querySelector('.unread-count').textContent = channel.unreadMessageCount;
-            
-            channelItem.querySelector('.channel-item').addEventListener('click', () => SelectChannel(channel));
-            
-            channelListContent.appendChild(channelItem);
-        });
-    } catch (error) {
-        console.error('Error loading channel list:', error);
-        ShowErrorMessage('채널 목록을 불러오는 중 오류가 발생했습니다.');
-    }
+function initializeChatComponents() {
+  // Create DOM elements for channel list, message list, and message input
 }
 
-function SelectChannel(channel) {
-    // Implement channel selection logic
-    // Load messages for the selected channel
-    // Update UI to show the selected channel
+function setupChannelList() {
+  // Use GroupChannelCollection to fetch and display channels
+  // Implement pagination
+  // Display unread counts and last message
 }
 
-function SendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const message = messageInput.value.trim();
-    if (message) {
-        // Implement send message logic using Sendbird SDK
-        // Update UI after sending
-        messageInput.value = '';
-    }
+function setupMessageList() {
+  // Create MessageCollection (initially empty)
+  // Implement infinite scrolling
+  // Display messages with sender info and timestamp
 }
 
-function HandleNewMessage(channel, message) {
-    // Implement new message handling
-    // Update UI to show the new message
+function setupMessageInput() {
+  // Create message input form
+  // Implement send message functionality
+  // Add file/image upload capability
 }
 
-function UpdateChannelList() {
-    // Implement channel list update logic
-    LoadChannelList();
+function setupEventHandlers(channelCollection, messageCollection) {
+  // Set up channel and message event handlers
+  // Update UI in real-time
 }
 
-function UpdateUserPresence(channel, user) {
-    // Implement user presence update logic
-    // Update UI to reflect user presence changes
+function setupUserPresence() {
+  // Fetch and display user online status
+  // Show user avatars and basic profile info
 }
 
-function HandleSearch() {
-    const searchTerm = document.getElementById('searchInput').value.trim();
-    if (searchTerm) {
-        // Implement search logic using Sendbird SDK
-        // Update UI to show search results
-    } else {
-        LoadChannelList();
-    }
+function setupSearch() {
+  // Implement message and channel search
 }
 
-function HandleFileSelection() {
-    const fileInput = document.getElementById('fileInput');
-    const files = fileInput.files;
-    if (files.length > 0) {
-        // Implement file upload logic using Sendbird SDK
-        // Update UI to show upload progress and result
-    }
+function setupErrorHandlingAndConnectionStatus() {
+  // Display connection status
+  // Show error messages
 }
 
-function ToggleChannelList() {
-    const channelList = document.getElementById('channelList');
-    channelList.classList.toggle('show');
-}
-
-function UpdateConnectionStatus(status) {
-    const connectionStatus = document.getElementById('connectionStatus');
-    connectionStatus.textContent = `Connection status: ${status}`;
-    connectionStatus.classList.remove('d-none');
-}
-
-function HandleMessageInputKeypress(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        SendMessage();
-    }
-}
-
-function FormatDate(date) {
-    // Implement date formatting logic
-    return new Date(date).toLocaleString();
-}
-
-function ShowChatErrorMessage(message) {
-    const errorMessages = document.getElementById('errorMessages');
-    errorMessages.textContent = message;
-    errorMessages.classList.remove('d-none');
+function applyResponsiveDesign() {
+  // Apply CSS for responsive layout
 }
 
 
