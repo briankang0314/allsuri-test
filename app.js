@@ -22,38 +22,26 @@ export async function Start()
         Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f');
         console.log("Kakao initialized", Kakao);
 
+        sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
+        console.log("Sendbird initialized", sb);    
+
+        try { await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id); } catch(Error) { return; }
+
         // callback setting for kakao login
-        if (window.location.pathname === '/oauth/callback')
-        {
-            await LoginByKakao();
-            
-            sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
-
-            console.log("Sendbird initialized", sb);    
-
-            try {await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id);} catch(Error) {return;}
-            return;
-        }
+        if (window.location.pathname === '/oauth/callback') { await LoginByKakao(); return; }
 
         // check things to start app
-        if (Notification.permission != 'granted') {FillTheBody('notification'); return;}
+        if (Notification.permission != 'granted') { FillTheBody('notification'); return; }
 
-        if (localStorage.getItem('user') == null || localStorage.getItem('tokens') == null)
-        {
-            await FillTheBody('login');
-            return;
-        }
-        else
-        {
-            if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;}
-        }
+        if (localStorage.getItem('user') == null || localStorage.getItem('tokens') == null) { await FillTheBody('login'); return; }
+        else { if (!await CheckProfileCompleteness()) {await FillTheBody('my-profile'); ShowIncompleteProfileWarning(); return;} }
 
         await FillTheBody('home');
     }
     else
     {
         // kakao browser: exit
-        if (navigator.userAgent.indexOf('KAKAO') >= 0) {location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location); return;}
+        if (navigator.userAgent.indexOf('KAKAO') >= 0) { location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location); return; }
 
         await FillTheBody('landing');
     }
