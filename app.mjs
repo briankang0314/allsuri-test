@@ -2,8 +2,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging.js';
-import SendbirdChat from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/+esm';
-import { GroupChannelModule } from 'https://cdn.jsdelivr.net/npm/@sendbird/chat@4.14.1/groupChannel.min.js';
 /*
 Remember these
 
@@ -21,11 +19,6 @@ export async function Start()
     {
         Kakao.init('8cdce0e36a3774e9d3d2a738f2d5192f');
         console.log("Kakao initialized", Kakao);
-
-        sb = SendbirdChat.init({appId: '9C4825FA-714B-49B2-B75A-72E9E5632578', modules: [new GroupChannelModule()]});
-        console.log("Sendbird initialized", sb);    
-
-        try { await ConnectToSendbird(JSON.parse(localStorage.getItem('user')).user_id); } catch(Error) { return; }
 
         // callback setting for kakao login
         if (window.location.pathname === '/oauth/callback') { await LoginByKakao(); return; }
@@ -50,10 +43,6 @@ export async function Start()
 // Global Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-let sb = null;
 
 const regions = [
     { id: 1, name: '서울' }, { id: 2, name: '인천' }, { id: 3, name: '경기' },
@@ -254,33 +243,6 @@ let isSubmitting = false;
 
 // Dynamic Content Loading
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-async function ConnectToSendbird(userId)
-{
-    try {
-        const user = await sb.connect(userId);
-        console.log('Successfully connected to Sendbird', user);
-        console.log('user id: ', userId);
-        return user;
-    } catch (error) {
-        console.error('Error connecting to Sendbird:', error);
-        throw error;
-    }
-}
-
-
-
-
-
-
 async function FillTheBody(contentName, params = {}) {
     try {
         if (contentName === 'my-profile') {
@@ -955,14 +917,6 @@ function ShowOrderDetails(order, currentUser) {
 
     const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
     modal.show();
-}
-
-function OpenChatInterface() {
-    // Implement this function to open your chat UI
-    // This might involve fetching chat data from Sendbird,
-    // rendering a chat component, etc.
-    console.log('Opening chat interface');
-    // TODO: Implement chat opening logic
 }
 
 function SetupFilterAndSort() {
