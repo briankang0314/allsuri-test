@@ -1122,75 +1122,10 @@ async function Logout() {
 async function SetupChatPage() {
   // 1. Initialize chat components
   initializeChatComponents();
-
-  // 2. Set up channel list
-  const channelCollection = setupChannelList();
-
-  // 3. Set up message list (initially empty)
-  const messageCollection = setupMessageList();
-
-  // 4. Set up message input
-  setupMessageInput();
-
-  // 5. Set up real-time event handlers
-  setupEventHandlers(channelCollection, messageCollection);
-
-  // 6. Set up user presence and profiles
-  setupUserPresence();
-
-  // 7. Set up search functionality
-  setupSearch();
-
-  // 8. Set up error handling and connection status display
-  setupErrorHandlingAndConnectionStatus();
-
-  // 9. Apply responsive design (CSS)
-  applyResponsiveDesign();
 }
 
 function initializeChatComponents() {
   // Create DOM elements for channel list, message list, and message input
-}
-
-function setupChannelList() {
-  // Use GroupChannelCollection to fetch and display channels
-  // Implement pagination
-  // Display unread counts and last message
-}
-
-function setupMessageList() {
-  // Create MessageCollection (initially empty)
-  // Implement infinite scrolling
-  // Display messages with sender info and timestamp
-}
-
-function setupMessageInput() {
-  // Create message input form
-  // Implement send message functionality
-  // Add file/image upload capability
-}
-
-function setupEventHandlers(channelCollection, messageCollection) {
-  // Set up channel and message event handlers
-  // Update UI in real-time
-}
-
-function setupUserPresence() {
-  // Fetch and display user online status
-  // Show user avatars and basic profile info
-}
-
-function setupSearch() {
-  // Implement message and channel search
-}
-
-function setupErrorHandlingAndConnectionStatus() {
-  // Display connection status
-  // Show error messages
-}
-
-function applyResponsiveDesign() {
-  // Apply CSS for responsive layout
 }
 
 

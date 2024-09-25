@@ -15,21 +15,30 @@
 
                 _TheWebSocket.onerror = () => {alert('Error')};
                 _TheWebSocket.onmessage = (Message) => {alert(Message.data);};
+            };
 
-
-
-
-
-
+            function Send()
+            {
 
 
 
                 // test
                 const NewMessage = prompt("?");
                 _TheWebSocket.send(NewMessage);
-            };
+
+
+
+            }
 		</script>
 	</head>
 	<body>
+
+
+
+
+
+        <button onclick="Send();">Send</button>
+
+
 	</body>
 </html>
