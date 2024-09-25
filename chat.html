@@ -13,8 +13,8 @@
                 _TheWebSocket.onopen = () => {alert('Connected!')};
                 _TheWebSocket.onclose = () => {alert('Disconnected!')};
 
-                _TheWebSocket.onerror = () => {alert('Error')}
-                _TheWebSocket.onmessage = (Message) => {document.getElementById("your_message").value = Message.data;}
+                _TheWebSocket.onerror = () => {alert('Error')};
+                _TheWebSocket.onmessage = (Message) => {alert(Message.data);};
             };
 		</script>
 	</head>
