@@ -17,7 +17,7 @@
                 _TheWebSocket.onmessage = (Message) => {alert(Message.data);};
             };
 
-            function Send()
+            window.Send = function()
             {
 
 
@@ -38,7 +38,7 @@
 
 
 
-        <button onclick="Send()">Send</button>
+        <button onclick="Send();">Send</button>
 
 
 	</body>
