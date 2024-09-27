@@ -34,7 +34,7 @@ export async function Start()
     else
     {
         // kakao browser: exit
-        if (navigator.userAgent.indexOf('KAKAO') >= 0) { location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location); return; }
+        if (navigator.userAgent.indexOf('KAKAO') >= 0) { location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href); return; }
 
         await FillTheBody('landing');
     }
